@@ -24,7 +24,7 @@
           <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
           <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
         </svg>
-        <span class="wordmark">RESCUE<span class="accent-word">RADIUS</span></span>
+        <span class="wordmark">Rescue<span class="accent-word">Radius</span></span>
       </a>
     </div>
     <a class="cta-small" href="index.html#contact">Get In Touch</a>
@@ -34,20 +34,15 @@
       <summary>Services</summary>
       <div class="nav-submenu">
         <a href="service-aed.html">AED Wall Mount</a>
+        <a href="service-aed-outdoor.html">Outdoor AED Kits</a>
         <a href="service-stb.html">Stop the Bleed Box</a>
         <a href="service-naloxone.html">Naloxone Box</a>
+        <a href="service-hand-hygiene.html">Hand Hygiene Stations</a>
         <a href="service-mci.html">MCI Kits</a>
         <a href="service-fire.html">Fire Extinguisher Service</a>
       </div>
     </details>
-    <details>
-      <summary>Shop</summary>
-      <div class="nav-submenu">
-        <a href="shop-sanitizer.html">Hand Hygiene Stations</a>
-        <a href="shop-trauma-kits.html">Trauma Kits</a>
-      </div>
-    </details>
-    <a href="index.html#about">About Us</a>
+    <a href="about.html">About Us</a>
     <a href="index.html#contact">Contact Us</a>
   </div>
 </nav>
@@ -62,14 +57,14 @@
     <div class="eyebrow">01 / CARDIAC ARREST</div>
     <h1>AED Wall Mount</h1>
     <div class="price-tag">$100 / month</div>
-    <p>A fully serviced AED placement — sized for offices, gyms, schools, and small venues. Every minute matters in sudden cardiac arrest; this keeps a working AED within reach, not just installed once and forgotten.</p>
+    <p>A fully serviced AED placement — sized for offices, schools, and hospitals just as well as large facilities and multi-building campuses. Every minute matters in sudden cardiac arrest; this keeps a working AED within reach, not just installed once and forgotten.</p>
   </div>
 </header>
 
 <section>
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">What's Included</div>
+      <div class="eyebrow" style="color:var(--sage);">What's Included</div>
       <h2>Every placement comes stocked</h2>
     </div>
     <ul class="includes-list">
@@ -79,8 +74,29 @@
       <li>PPE</li>
     </ul>
     <div class="note-banner">
-      <h3>What your monthly fee actually covers</h3>
+      <h3>What ongoing service includes</h3>
       <p>Scheduled inspections, pad and battery swaps before they expire, and replacement of anything used in a real event — so the unit on your wall is never the reason help was late.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow" style="color:var(--sage);">Pricing</div>
+      <h2>Two ways to get started</h2>
+    </div>
+    <div class="pricing-tiers">
+      <div class="tier">
+        <div class="tier-label">4-Year Agreement</div>
+        <div class="tier-price">$0 install</div>
+        <p>No upfront cost — $100/month for the full term, in exchange for a 4-year commitment.</p>
+      </div>
+      <div class="tier">
+        <div class="tier-label">No Commitment</div>
+        <div class="tier-price">$250 install</div>
+        <p>Cancel anytime. A one-time $250 setup fee covers the wall mount and hardware, then $100/month.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -97,26 +113,31 @@
           Idaho, USA
         </p>
       </div>
-      <form onsubmit="event.preventDefault(); this.querySelector('.submit-note').textContent='Thanks — we\'ll be in touch shortly.';">
-        <div>
-          <label for="name">Name</label>
-          <input id="name" type="text" required>
+      <div>
+        <form class="contact-form">
+          <div>
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" required>
+          </div>
+          <div>
+            <label for="org">Organization</label>
+            <input id="org" name="organization" type="text">
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required>
+          </div>
+          <div>
+            <label for="msg">Tell us about your space</label>
+            <textarea id="msg" name="message"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send</button>
+          <p class="submit-note"></p>
+        </form>
+        <div class="form-success" style="display:none;">
+          <p>Received — we'll get back to you shortly.</p>
         </div>
-        <div>
-          <label for="org">Organization</label>
-          <input id="org" type="text">
-        </div>
-        <div>
-          <label for="email">Email</label>
-          <input id="email" type="email" required>
-        </div>
-        <div>
-          <label for="msg">Tell us about your space</label>
-          <textarea id="msg"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send</button>
-        <p class="submit-note"></p>
-      </form>
+      </div>
     </div>
   </div>
 </section>
@@ -127,13 +148,13 @@
       RESCUERADIUS LLC · IDAHO-OWNED
       <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
         <rect width="30" height="20" fill="#F2EFE9"/>
-        <rect y="0" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="3.08" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="6.16" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="9.24" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="12.32" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="15.4" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="18.48" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="0" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="3.08" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="6.16" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="9.24" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="12.32" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="15.4" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="18.48" width="30" height="1.54" fill="#E8622E"/>
         <rect width="12" height="10.8" fill="#7C9885"/>
       </svg>
       · &copy; 2026
@@ -142,5 +163,6 @@
   </div>
 </footer>
 
+<script src="script.js" defer></script>
 </body>
 </html>

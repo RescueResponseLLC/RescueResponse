@@ -24,7 +24,7 @@
           <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
           <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
         </svg>
-        <span class="wordmark">RESCUE<span class="accent-word">RADIUS</span></span>
+        <span class="wordmark">Rescue<span class="accent-word">Radius</span></span>
       </a>
     </div>
     <a class="cta-small" href="index.html#contact">Get In Touch</a>
@@ -34,20 +34,15 @@
       <summary>Services</summary>
       <div class="nav-submenu">
         <a href="service-aed.html">AED Wall Mount</a>
+        <a href="service-aed-outdoor.html">Outdoor AED Kits</a>
         <a href="service-stb.html">Stop the Bleed Box</a>
         <a href="service-naloxone.html">Naloxone Box</a>
+        <a href="service-hand-hygiene.html">Hand Hygiene Stations</a>
         <a href="service-mci.html">MCI Kits</a>
         <a href="service-fire.html">Fire Extinguisher Service</a>
       </div>
     </details>
-    <details>
-      <summary>Shop</summary>
-      <div class="nav-submenu">
-        <a href="shop-sanitizer.html">Hand Hygiene Stations</a>
-        <a href="shop-trauma-kits.html">Trauma Kits</a>
-      </div>
-    </details>
-    <a href="index.html#about">About Us</a>
+    <a href="about.html">About Us</a>
     <a href="index.html#contact">Contact Us</a>
   </div>
 </nav>
@@ -61,30 +56,30 @@
       <circle class="glyph-fill" cx="24" cy="42" r="5"/>
       <circle class="glyph-fill" cx="44" cy="42" r="5"/>
     </svg>
-    <div class="eyebrow">04 / MASS CASUALTY</div>
+    <div class="eyebrow">06 / MASS CASUALTY</div>
     <h1>MCI Kits</h1>
-    <div class="price-tag">$150 / day</div>
-    <p>Scaled trauma and triage equipment for large events and gatherings — built for multiple-patient incidents, not single-injury first aid. Rented by the day, not placed monthly, since mass-casualty kits are sized for events, not fixed locations.</p>
+    <div class="price-tag">$200 / day</div>
+    <p>Full-scale trauma and cardiac response equipment for events and gatherings of any kind — built for incidents involving multiple people, not a single injury.</p>
   </div>
 </header>
 
 <section>
   <div class="wrap">
     <div class="section-head">
-      <div class="eyebrow">What's Included</div>
+      <div class="eyebrow" style="color:var(--sage);">What's Included</div>
       <h2>Every kit comes stocked</h2>
     </div>
     <ul class="includes-list">
       <li>Triage tags</li>
       <li>Written triage instructions</li>
       <li>PPE</li>
-      <li>Full stop-the-bleed kit contents (tourniquets, gauze, bandages, shears)</li>
-      <li>AED and cardiac response equipment</li>
+      <li>Full stop-the-bleed kit contents (tourniquets, chest seals, gauze, bandages, shears)</li>
     </ul>
     <div class="note-banner">
-      <h3>Why day rate, not monthly</h3>
-      <p>MCI kits are built for the scale of a single event — a race, festival, or large gathering — not a fixed wall placement. Renting by the day means you get event-scaled equipment exactly when you need it, delivered and picked up.</p>
+      <h3>Plus a complete AED event kit</h3>
+      <p>Every MCI Kit also includes a full AED, CPR mask, trauma shears, and PPE — so cardiac and trauma response are covered together, under one kit.</p>
     </div>
+    <p class="mission-text" style="margin-top:36px;">Mass-casualty incidents aren't limited to races and festivals — they happen in schools, offices, and workplaces too. MCI Kits bring full-scale response equipment wherever a large group of people gathers, for as long as you need it.</p>
   </div>
 </section>
 
@@ -92,34 +87,39 @@
   <div class="wrap">
     <div class="contact-box">
       <div>
-        <h2>Planning an event?</h2>
-        <p>Tell us about the event size and duration and we'll follow up with next steps. Multi-day discounts available.</p>
+        <h2>Planning an event, or covering a site?</h2>
+        <p>Tell us about the size, location, and duration and we'll follow up with next steps.</p>
         <p class="contact-direct">
           <a href="tel:+12073509787">(207) 350-9787</a><br>
           <a href="mailto:RescueRadius@outlook.com">RescueRadius@outlook.com</a><br>
           Idaho, USA
         </p>
       </div>
-      <form onsubmit="event.preventDefault(); this.querySelector('.submit-note').textContent='Thanks — we\'ll be in touch shortly.';">
-        <div>
-          <label for="name">Name</label>
-          <input id="name" type="text" required>
+      <div>
+        <form class="contact-form">
+          <div>
+            <label for="name">Name</label>
+            <input id="name" name="name" type="text" required>
+          </div>
+          <div>
+            <label for="org">Organization</label>
+            <input id="org" name="organization" type="text">
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required>
+          </div>
+          <div>
+            <label for="msg">Tell us about your event</label>
+            <textarea id="msg" name="message"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send</button>
+          <p class="submit-note"></p>
+        </form>
+        <div class="form-success" style="display:none;">
+          <p>Received — we'll get back to you shortly.</p>
         </div>
-        <div>
-          <label for="org">Organization</label>
-          <input id="org" type="text">
-        </div>
-        <div>
-          <label for="email">Email</label>
-          <input id="email" type="email" required>
-        </div>
-        <div>
-          <label for="msg">Tell us about your event</label>
-          <textarea id="msg"></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send</button>
-        <p class="submit-note"></p>
-      </form>
+      </div>
     </div>
   </div>
 </section>
@@ -130,13 +130,13 @@
       RESCUERADIUS LLC · IDAHO-OWNED
       <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
         <rect width="30" height="20" fill="#F2EFE9"/>
-        <rect y="0" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="3.08" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="6.16" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="9.24" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="12.32" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="15.4" width="30" height="1.54" fill="#FF5A1F"/>
-        <rect y="18.48" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="0" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="3.08" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="6.16" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="9.24" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="12.32" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="15.4" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="18.48" width="30" height="1.54" fill="#E8622E"/>
         <rect width="12" height="10.8" fill="#7C9885"/>
       </svg>
       · &copy; 2026
@@ -145,5 +145,6 @@
   </div>
 </footer>
 
+<script src="script.js" defer></script>
 </body>
 </html>
