@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trauma Kits — RescueRadius</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topo"></div>
+
+<nav>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <div class="wrap">
+    <div class="nav-left">
+      <label for="nav-toggle" class="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </label>
+      <a href="index.html" class="brand">
+        <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+          <circle class="outer" cx="15" cy="15" r="14"/>
+          <circle cx="15" cy="15" r="9.5"/>
+          <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
+          <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
+        </svg>
+        <span class="wordmark">RESCUE<span class="accent-word">RADIUS</span></span>
+      </a>
+    </div>
+    <a class="cta-small" href="index.html#contact">Get In Touch</a>
+  </div>
+  <div class="nav-menu">
+    <details>
+      <summary>Services</summary>
+      <div class="nav-submenu">
+        <a href="service-aed.html">AED Wall Mount</a>
+        <a href="service-stb.html">Stop the Bleed Box</a>
+        <a href="service-naloxone.html">Naloxone Box</a>
+        <a href="service-mci.html">MCI Kits</a>
+        <a href="service-fire.html">Fire Extinguisher Service</a>
+      </div>
+    </details>
+    <details open>
+      <summary>Shop</summary>
+      <div class="nav-submenu">
+        <a href="shop-sanitizer.html">Hand Hygiene Stations</a>
+        <a href="shop-trauma-kits.html">Trauma Kits</a>
+      </div>
+    </details>
+    <a href="index.html#about">About Us</a>
+    <a href="index.html#contact">Contact Us</a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="wrap">
+    <svg class="icon-badge" viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="outer" cx="32" cy="32" r="28"/>
+      <rect class="glyph" x="18" y="24" width="28" height="20" rx="3"/>
+      <path class="glyph" d="M26,24 Q26,15 32,15 Q38,15 38,24"/>
+      <rect class="glyph-fill" x="29" y="27" width="6" height="14"/>
+      <rect class="glyph-fill" x="25" y="31" width="14" height="6"/>
+    </svg>
+    <div class="eyebrow">SHOP / RETAIL</div>
+    <h1>Trauma Kits</h1>
+    <div class="price-tag">Customizable — priced by contents</div>
+    <p>Portable trauma kits combining stop-the-bleed and naloxone equipment, sold outright and built to what you actually want to carry — for a vehicle, office, or go-bag.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Build Your Kit</div>
+      <h2>Choose what goes in</h2>
+    </div>
+    <ul class="includes-list">
+      <li>Tourniquets</li>
+      <li>Combat gauze</li>
+      <li>Emergency bandages</li>
+      <li>Trauma shears</li>
+      <li>Naloxone</li>
+      <li>PPE</li>
+      <li>Positioning devices</li>
+      <li>Pouch / bag options</li>
+    </ul>
+    <div class="note-banner">
+      <h3>Fully customizable</h3>
+      <p>Tell us what you want included and where it's going — a car, a classroom, a jobsite — and we'll quote a kit sized to that. Used something out of it later? We stock individual replacement components too.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-box">
+      <div>
+        <h2>Build a kit.</h2>
+        <p>Tell us what you want included and we'll send a quote.</p>
+        <p class="contact-direct">
+          <a href="tel:+12073509787">(207) 350-9787</a><br>
+          <a href="mailto:RescueRadius@outlook.com">RescueRadius@outlook.com</a><br>
+          Idaho, USA
+        </p>
+      </div>
+      <form onsubmit="event.preventDefault(); this.querySelector('.submit-note').textContent='Thanks — we\'ll be in touch shortly.';">
+        <div>
+          <label for="name">Name</label>
+          <input id="name" type="text" required>
+        </div>
+        <div>
+          <label for="org">Organization</label>
+          <input id="org" type="text">
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" required>
+        </div>
+        <div>
+          <label for="msg">What do you want in your kit?</label>
+          <textarea id="msg"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send</button>
+        <p class="submit-note"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p>
+      RESCUERADIUS LLC · IDAHO-OWNED
+      <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
+        <rect width="30" height="20" fill="#F2EFE9"/>
+        <rect y="0" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="3.08" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="6.16" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="9.24" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="12.32" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="15.4" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="18.48" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect width="12" height="10.8" fill="#7C9885"/>
+      </svg>
+      · &copy; 2026
+    </p>
+    <p>(207) 350-9787 · RescueRadius@outlook.com</p>
+  </div>
+</footer>
+
+</body>
+</html>

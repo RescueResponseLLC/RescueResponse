@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fire Extinguisher Service — RescueRadius</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topo"></div>
+
+<nav>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <div class="wrap">
+    <div class="nav-left">
+      <label for="nav-toggle" class="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </label>
+      <a href="index.html" class="brand">
+        <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+          <circle class="outer" cx="15" cy="15" r="14"/>
+          <circle cx="15" cy="15" r="9.5"/>
+          <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
+          <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
+        </svg>
+        <span class="wordmark">RESCUE<span class="accent-word">RADIUS</span></span>
+      </a>
+    </div>
+    <a class="cta-small" href="index.html#contact">Get In Touch</a>
+  </div>
+  <div class="nav-menu">
+    <details open>
+      <summary>Services</summary>
+      <div class="nav-submenu">
+        <a href="service-aed.html">AED Wall Mount</a>
+        <a href="service-stb.html">Stop the Bleed Box</a>
+        <a href="service-naloxone.html">Naloxone Box</a>
+        <a href="service-mci.html">MCI Kits</a>
+        <a href="service-fire.html">Fire Extinguisher Service</a>
+      </div>
+    </details>
+    <details>
+      <summary>Shop</summary>
+      <div class="nav-submenu">
+        <a href="shop-sanitizer.html">Hand Hygiene Stations</a>
+        <a href="shop-trauma-kits.html">Trauma Kits</a>
+      </div>
+    </details>
+    <a href="index.html#about">About Us</a>
+    <a href="index.html#contact">Contact Us</a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="wrap">
+    <svg class="icon-badge" viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="outer" cx="32" cy="32" r="28"/>
+      <rect class="glyph" x="26" y="22" width="12" height="28" rx="4"/>
+      <rect class="glyph" x="28" y="12" width="8" height="10" rx="2"/>
+      <path class="glyph" d="M38,20 Q48,20 46,30"/>
+      <line class="glyph" x1="22" y1="16" x2="28" y2="16"/>
+    </svg>
+    <div class="eyebrow">05 / FIRE</div>
+    <h1>Fire Extinguisher Service</h1>
+    <div class="price-tag">$20–$50 / month</div>
+    <p>Bulk placement with certified annual inspection, coordinated on your behalf — one contract covers your whole building instead of piecemeal compliance tracking.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">What's Included</div>
+      <h2>Every placement comes covered</h2>
+    </div>
+    <ul class="includes-list">
+      <li>Extinguisher(s) sized to your space</li>
+      <li>Certified annual inspection</li>
+      <li>Compliance tagging</li>
+      <li>Replacement on discharge or expiration</li>
+    </ul>
+    <div class="note-banner">
+      <h3>What your monthly fee actually covers</h3>
+      <p>Certified annual inspection and tagging, plus replacement if a unit is discharged or ages out — coordinated for you rather than left as a compliance task you have to remember. Price scales with the number of units your space needs.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Pricing</div>
+      <h2>Placement or single event</h2>
+    </div>
+    <div class="pricing-tiers">
+      <div class="tier">
+        <div class="tier-label">Monthly Placement</div>
+        <div class="tier-price">$20–$50/mo</div>
+        <p>Priced by unit count and building size, with certified annual inspection included.</p>
+      </div>
+      <div class="tier">
+        <div class="tier-label">Event Rental</div>
+        <div class="tier-price">$100/day</div>
+        <p>Fire coverage for a single event or temporary space, delivered and picked up.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-box">
+      <div>
+        <h2>Ready to place one?</h2>
+        <p>Tell us about your space and we'll follow up with next steps.</p>
+        <p class="contact-direct">
+          <a href="tel:+12073509787">(207) 350-9787</a><br>
+          <a href="mailto:RescueRadius@outlook.com">RescueRadius@outlook.com</a><br>
+          Idaho, USA
+        </p>
+      </div>
+      <form onsubmit="event.preventDefault(); this.querySelector('.submit-note').textContent='Thanks — we\'ll be in touch shortly.';">
+        <div>
+          <label for="name">Name</label>
+          <input id="name" type="text" required>
+        </div>
+        <div>
+          <label for="org">Organization</label>
+          <input id="org" type="text">
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" required>
+        </div>
+        <div>
+          <label for="msg">Tell us about your space</label>
+          <textarea id="msg"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send</button>
+        <p class="submit-note"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p>
+      RESCUERADIUS LLC · IDAHO-OWNED
+      <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
+        <rect width="30" height="20" fill="#F2EFE9"/>
+        <rect y="0" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="3.08" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="6.16" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="9.24" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="12.32" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="15.4" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="18.48" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect width="12" height="10.8" fill="#7C9885"/>
+      </svg>
+      · &copy; 2026
+    </p>
+    <p>(207) 350-9787 · RescueRadius@outlook.com</p>
+  </div>
+</footer>
+
+</body>
+</html>

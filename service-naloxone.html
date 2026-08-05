@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naloxone Box — RescueRadius</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topo"></div>
+
+<nav>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+  <div class="wrap">
+    <div class="nav-left">
+      <label for="nav-toggle" class="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </label>
+      <a href="index.html" class="brand">
+        <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+          <circle class="outer" cx="15" cy="15" r="14"/>
+          <circle cx="15" cy="15" r="9.5"/>
+          <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
+          <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
+        </svg>
+        <span class="wordmark">RESCUE<span class="accent-word">RADIUS</span></span>
+      </a>
+    </div>
+    <a class="cta-small" href="index.html#contact">Get In Touch</a>
+  </div>
+  <div class="nav-menu">
+    <details open>
+      <summary>Services</summary>
+      <div class="nav-submenu">
+        <a href="service-aed.html">AED Wall Mount</a>
+        <a href="service-stb.html">Stop the Bleed Box</a>
+        <a href="service-naloxone.html">Naloxone Box</a>
+        <a href="service-mci.html">MCI Kits</a>
+        <a href="service-fire.html">Fire Extinguisher Service</a>
+      </div>
+    </details>
+    <details>
+      <summary>Shop</summary>
+      <div class="nav-submenu">
+        <a href="shop-sanitizer.html">Hand Hygiene Stations</a>
+        <a href="shop-trauma-kits.html">Trauma Kits</a>
+      </div>
+    </details>
+    <a href="index.html#about">About Us</a>
+    <a href="index.html#contact">Contact Us</a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="wrap">
+    <svg class="icon-badge" viewBox="0 0 64 64" aria-hidden="true">
+      <circle class="outer" cx="32" cy="32" r="28"/>
+      <rect class="glyph" x="24" y="26" width="16" height="24" rx="3"/>
+      <rect class="glyph" x="29" y="16" width="6" height="10" rx="1"/>
+      <line class="glyph" x1="26" y1="14" x2="20" y2="8"/>
+      <line class="glyph" x1="32" y1="12" x2="32" y2="6"/>
+      <line class="glyph" x1="38" y1="14" x2="44" y2="8"/>
+    </svg>
+    <div class="eyebrow">03 / OVERDOSE</div>
+    <h1>Naloxone Box</h1>
+    <div class="price-tag">$20 / month</div>
+    <p>A wall-mounted naloxone station for overdose response in public and semi-public spaces — stocked with current-dated product, not something expired that no one checked.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">What's Included</div>
+      <h2>Every placement comes stocked</h2>
+    </div>
+    <ul class="includes-list">
+      <li>Naloxone (multi-dose)</li>
+      <li>PPE</li>
+      <li>Positioning devices</li>
+    </ul>
+    <div class="note-banner">
+      <h3>What your monthly fee actually covers</h3>
+      <p>Naloxone has a real shelf life. Your monthly fee covers expiration tracking and swaps before that date arrives, plus replacement of anything used — so the box always has a dose that actually works.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Pricing</div>
+      <h2>Placement or single event</h2>
+    </div>
+    <div class="pricing-tiers">
+      <div class="tier">
+        <div class="tier-label">Monthly Placement</div>
+        <div class="tier-price">$20/mo</div>
+        <p>Fixed wall-mounted station, fully stocked and serviced every month.</p>
+      </div>
+      <div class="tier">
+        <div class="tier-label">Event Rental</div>
+        <div class="tier-price">$100/day</div>
+        <p>Portable naloxone station for a single event or gathering, delivered and picked up.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap">
+    <div class="contact-box">
+      <div>
+        <h2>Ready to place one?</h2>
+        <p>Tell us about your space and we'll follow up with next steps.</p>
+        <p class="contact-direct">
+          <a href="tel:+12073509787">(207) 350-9787</a><br>
+          <a href="mailto:RescueRadius@outlook.com">RescueRadius@outlook.com</a><br>
+          Idaho, USA
+        </p>
+      </div>
+      <form onsubmit="event.preventDefault(); this.querySelector('.submit-note').textContent='Thanks — we\'ll be in touch shortly.';">
+        <div>
+          <label for="name">Name</label>
+          <input id="name" type="text" required>
+        </div>
+        <div>
+          <label for="org">Organization</label>
+          <input id="org" type="text">
+        </div>
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" required>
+        </div>
+        <div>
+          <label for="msg">Tell us about your space</label>
+          <textarea id="msg"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Send</button>
+        <p class="submit-note"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p>
+      RESCUERADIUS LLC · IDAHO-OWNED
+      <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
+        <rect width="30" height="20" fill="#F2EFE9"/>
+        <rect y="0" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="3.08" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="6.16" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="9.24" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="12.32" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="15.4" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect y="18.48" width="30" height="1.54" fill="#FF5A1F"/>
+        <rect width="12" height="10.8" fill="#7C9885"/>
+      </svg>
+      · &copy; 2026
+    </p>
+    <p>(207) 350-9787 · RescueRadius@outlook.com</p>
+  </div>
+</footer>
+
+</body>
+</html>
