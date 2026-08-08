@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Kit Usage — RescueRadius</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topo"></div>
+
+<nav>
+  <div class="wrap" style="padding:16px 24px;">
+    <a href="index.html" class="brand">
+      <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+        <circle class="outer" cx="15" cy="15" r="14"/>
+        <circle cx="15" cy="15" r="9.5"/>
+        <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
+        <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
+      </svg>
+      <span class="wordmark">Rescue<span class="accent-word">Radius</span></span>
+    </a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Kit Usage Report</div>
+    <h1>Something used or missing?</h1>
+    <p>Tell us what happened — this flags the kit for restock right away, no phone call needed.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <form class="contact-form" id="usage-form" style="max-width:480px;">
+      <div>
+        <label for="kit-id">Kit ID</label>
+        <input id="kit-id" name="kit_id" type="text" required placeholder="e.g. STB-4821">
+      </div>
+      <div>
+        <label for="what">What happened?</label>
+        <textarea id="what" name="message" required placeholder="What was used, and anything else worth knowing"></textarea>
+      </div>
+      <div>
+        <label for="reporter">Your name (optional)</label>
+        <input id="reporter" name="name" type="text">
+      </div>
+      <div>
+        <label for="reporter-contact">Phone or email (optional)</label>
+        <input id="reporter-contact" name="email" type="text">
+      </div>
+      <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Submit Report</button>
+      <p class="submit-note"></p>
+    </form>
+    <div class="form-success" style="display:none; max-width:480px;">
+      <p>Received — this kit has been flagged for restock. Thank you for letting us know.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p>
+      RESCUERADIUS LLC · IDAHO-OWNED
+      <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
+        <rect width="30" height="20" fill="#F2EFE9"/>
+        <rect y="0" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="3.08" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="6.16" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="9.24" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="12.32" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="15.4" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="18.48" width="30" height="1.54" fill="#E8622E"/>
+        <rect width="12" height="10.8" fill="#7C9885"/>
+      </svg>
+      · &copy; 2026
+    </p>
+    <p>(207) 350-9787 · RescueRadius@outlook.com</p>
+  </div>
+</footer>
+
+<script>
+  // Pre-fill the Kit ID from the QR code's URL, e.g. report.html?kit=STB-4821
+  const params = new URLSearchParams(window.location.search);
+  const kitParam = params.get('kit');
+  if (kitParam) {
+    document.getElementById('kit-id').value = kitParam;
+  }
+</script>
+<script src="script.js" defer></script>
+</body>
+</html>
