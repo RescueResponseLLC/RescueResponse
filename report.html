@@ -89,7 +89,33 @@
   if (kitParam) {
     document.getElementById('kit-id').value = kitParam;
   }
+
+  const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwjaJR4tWTLuKuuCO0RKnG0C3J3May8MBgCgtWwm8IqA49beqIBwWIxQLFEYXiLsiS63w/exec';
+
+  document.getElementById('usage-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+
+    const payload = {
+      action: 'reportUsage',
+      kitCode: document.getElementById('kit-id').value.trim(),
+      message: document.getElementById('what').value.trim(),
+      reporterName: document.getElementById('reporter').value.trim(),
+      reporterContact: document.getElementById('reporter-contact').value.trim()
+    };
+
+    fetch(BACKEND_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).finally(function () {
+      form.style.display = 'none';
+      document.querySelector('.form-success').style.display = 'block';
+    });
+  });
 </script>
-<script src="script.js" defer></script>
 </body>
 </html>
