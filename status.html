@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kit Status — RescueRadius</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topo"></div>
+
+<nav>
+  <div class="wrap" style="padding:16px 24px; display:flex; align-items:center; justify-content:space-between;">
+    <a href="index.html" class="brand">
+      <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+        <circle class="outer" cx="15" cy="15" r="14"/>
+        <circle cx="15" cy="15" r="9.5"/>
+        <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
+        <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
+      </svg>
+      <span class="wordmark">Rescue<span class="accent-word">Radius</span></span>
+    </a>
+    <a href="index.html" class="cta-small">Back to Site</a>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Kit Status</div>
+    <h1>Check your equipment's status</h1>
+    <p>Enter a kit's ID to see whether it's active and when it was last serviced — no login needed.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div style="max-width:420px; display:flex; gap:10px; margin-bottom:32px;">
+      <input id="status-kit-id" placeholder="e.g. STB-4821" style="flex:1;">
+      <button class="btn btn-primary" onclick="checkStatus()">Check</button>
+    </div>
+
+    <div id="status-result"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p>
+      RESCUERADIUS LLC · IDAHO-OWNED
+      <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
+        <rect width="30" height="20" fill="#F2EFE9"/>
+        <rect y="0" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="3.08" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="6.16" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="9.24" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="12.32" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="15.4" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="18.48" width="30" height="1.54" fill="#E8622E"/>
+        <rect width="12" height="10.8" fill="#7C9885"/>
+      </svg>
+      · &copy; 2026
+    </p>
+    <p>(207) 350-9787 · RescueRadius@outlook.com</p>
+  </div>
+</footer>
+
+<script>
+  const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbz8Wc4Kb736qB8ykJfMM3H4iiWd0q4kSQtjGbOQvG1-5wR-MSRA-rOVTgthWzzjFucQbA/exec';
+
+  const params = new URLSearchParams(window.location.search);
+  const kitParam = params.get('kit');
+  if (kitParam) {
+    document.getElementById('status-kit-id').value = kitParam;
+    checkStatus();
+  }
+
+  function checkStatus(){
+    const code = document.getElementById('status-kit-id').value.trim();
+    const resultBox = document.getElementById('status-result');
+    if(!code){ return; }
+    resultBox.innerHTML = '<p class="sub" style="color:var(--text-dim);">Checking...</p>';
+
+    const cb = 'rrStatus_' + Date.now();
+    const timeout = setTimeout(() => { cleanup(); showError(); }, 8000);
+    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
+
+    function showError(){
+      resultBox.innerHTML = '<div class="note-banner"><p>Could not reach the status service right now — try again in a moment, or contact us directly.</p></div>';
+    }
+
+    window[cb] = function(data){
+      cleanup();
+      if(!data || !data.found){
+        resultBox.innerHTML = '<div class="note-banner"><p>No kit found with that ID. Double-check the code and try again, or contact us if you think this is a mistake.</p></div>';
+        return;
+      }
+      resultBox.innerHTML = `
+        <div class="note-banner">
+          <h3>${data.code} — ${data.type}</h3>
+          <p><strong style="color:var(--text);">Status:</strong> ${data.statusLabel}</p>
+          <p><strong style="color:var(--text);">Last serviced:</strong> ${data.lastServiceDate || 'No service recorded yet'}</p>
+        </div>
+      `;
+    };
+
+    const script = document.createElement('script');
+    script.id = cb;
+    script.src = BACKEND_URL + '?action=status&code=' + encodeURIComponent(code) + '&callback=' + cb;
+    script.onerror = function(){ cleanup(); showError(); };
+    document.body.appendChild(script);
+  }
+
+  document.getElementById('status-kit-id').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') checkStatus();
+  });
+</script>
+</body>
+</html>
