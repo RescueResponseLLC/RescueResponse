@@ -245,10 +245,7 @@ footer a:hover{color:var(--accent);}
 .quick-item{display:flex; align-items:center; gap:8px; font-size:14px; color:var(--text-dim); text-shadow:0 2px 14px rgba(14,22,32,0.9);}
 .quick-item .qdot{width:6px; height:6px; border-radius:50%; background:var(--accent); flex-shrink:0;}
 
-/* HOW IT WORKS */
-.how-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--line); border:1px solid var(--line);}
-@media(max-width:720px){.how-grid{grid-template-columns:1fr;}}
-.how-step{background:var(--bg); padding:28px 26px;}
-.how-step .stepnum{font-family:var(--font-mono); color:var(--accent); font-size:13px;}
-.how-step h3{font-size:17px; margin:10px 0 8px; font-weight:700;}
-.how-step p{color:var(--text-dim); font-size:14.5px;}
+/* TESTIMONIAL */
+.testimonial{background:var(--bg-card); border:1px solid var(--line); border-left:3px solid var(--accent); padding:36px; max-width:680px;}
+.testimonial p.quote{font-size:19px; font-style:italic; color:var(--text); margin-bottom:18px; line-height:1.5;}
+.testimonial .attribution{font-family:var(--font-mono); font-size:13px; color:var(--text-dim);}
