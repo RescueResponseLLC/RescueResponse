@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
+  var BACKEND_URL = 'https://script.google.com/macros/s/AKfycbz8Wc4Kb736qB8ykJfMM3H4iiWd0q4kSQtjGbOQvG1-5wR-MSRA-rOVTgthWzzjFucQbA/exec';
+
   document.querySelectorAll('.contact-form').forEach(function (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -9,6 +11,25 @@ document.addEventListener('DOMContentLoaded', function () {
       data.append('_subject', 'New RescueRadius inquiry');
       data.append('_captcha', 'false');
       data.append('_template', 'table');
+
+      // Auto-create a pending kit in the Ops tool from whatever was typed,
+      // so nothing has to be re-entered by hand later.
+      var serviceType = form.dataset.serviceType || 'General Inquiry';
+      var nameField = form.querySelector('[name="name"]');
+      var emailField = form.querySelector('[name="email"]');
+      var messageField = form.querySelector('[name="message"]');
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'submitOrder',
+          type: serviceType,
+          client: nameField ? nameField.value : '',
+          clientEmail: emailField ? emailField.value : '',
+          message: messageField ? messageField.value : ''
+        })
+      }).catch(function(){ /* non-critical — email still sends below */ });
 
       fetch('https://formsubmit.co/ajax/RescueRadius@outlook.com', {
         method: 'POST',

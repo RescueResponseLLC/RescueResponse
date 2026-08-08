@@ -109,10 +109,40 @@
   .report-success{background:var(--bg-card); border:1px solid var(--ok); border-radius:4px; padding:24px; text-align:center; display:none;}
 
   .loading{color:var(--text-dim); font-family:var(--font-mono); font-size:13px; padding:20px 0;}
+
+  /* LOGIN GATE */
+  #login-screen{
+    position:fixed; inset:0; background:var(--bg); z-index:100;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .login-box{background:var(--bg-card); border:1px solid var(--line); border-radius:4px; padding:36px; max-width:360px; width:100%; text-align:center;}
+  .login-box .mark{width:40px; height:40px; margin:0 auto 16px;}
+  .login-box h1{font-size:18px; margin-bottom:6px;}
+  .login-box p{color:var(--text-dim); font-size:13.5px; margin-bottom:20px;}
+  .login-box input{margin-bottom:12px;}
+  .login-error{color:var(--bad); font-size:13px; margin-top:10px; display:none;}
+  #app-content{display:none;}
 </style>
 </head>
 <body>
 
+<div id="login-screen">
+  <div class="login-box">
+    <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+      <circle class="outer" cx="15" cy="15" r="14"/>
+      <circle cx="15" cy="15" r="9.5"/>
+      <rect x="12.8" y="8" width="4.4" height="14" rx="1"/>
+      <rect x="8" y="12.8" width="14" height="4.4" rx="1"/>
+    </svg>
+    <h1>RescueRadius Ops</h1>
+    <p>Enter the admin password to continue.</p>
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+    <button class="btn btn-primary" style="width:100%;" onclick="attemptLogin()">Enter</button>
+    <p class="login-error" id="login-error">Incorrect password — try again.</p>
+  </div>
+</div>
+
+<div id="app-content">
 <header>
   <div class="wrap">
     <div class="brand">
@@ -232,17 +262,7 @@
     <label for="kit-client-email">Client Email</label>
     <input id="kit-client-email" placeholder="for monthly reports" type="email">
     <label for="kit-address">Address</label>
-    <input id="kit-address" placeholder="Street, City, ID">
-    <div class="form-row">
-      <div>
-        <label for="kit-lat">Latitude (optional)</label>
-        <input id="kit-lat" placeholder="43.6150">
-      </div>
-      <div>
-        <label for="kit-lng">Longitude (optional)</label>
-        <input id="kit-lng" placeholder="-116.2023">
-      </div>
-    </div>
+    <input id="kit-address" placeholder="Street, City, ID — map coordinates fill in automatically">
     <div class="form-row">
       <div>
         <label for="kit-install">Install Date</label>
@@ -251,6 +271,7 @@
       <div>
         <label for="kit-status">Status</label>
         <select id="kit-status">
+          <option value="pending">New Inquiry — Needs Setup</option>
           <option value="active">Active</option>
           <option value="flagged">Flagged / Needs Service</option>
           <option value="retired">Retired</option>
@@ -293,8 +314,71 @@ let kits = [];
 let currentEditId = null;
 let leafletMap = null;
 let mapMarkers = [];
+let ADMIN_PW = '';
 
 const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbz8Wc4Kb736qB8ykJfMM3H4iiWd0q4kSQtjGbOQvG1-5wR-MSRA-rOVTgthWzzjFucQbA/exec';
+
+function showLoginScreen(errorMsg){
+  document.getElementById('app-content').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  const err = document.getElementById('login-error');
+  if(errorMsg){ err.textContent = errorMsg; err.style.display = 'block'; }
+  else { err.style.display = 'none'; }
+  localStorage.removeItem('rr-admin-pw');
+  ADMIN_PW = '';
+}
+
+function unlockApp(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-content').style.display = 'block';
+  loadKits();
+}
+
+async function attemptLogin(){
+  const pw = document.getElementById('login-password').value;
+  if(!pw) return;
+  // Validate by actually asking the backend — the real password lives only
+  // in the Apps Script, never in this page's code.
+  const testResult = await new Promise((resolve) => {
+    const cb = 'rrLoginCheck_' + Date.now();
+    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 8000);
+    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
+    window[cb] = function(data){ cleanup(); resolve(data); };
+    const script = document.createElement('script');
+    script.id = cb;
+    script.src = BACKEND_URL + '?action=list&callback=' + cb + '&password=' + encodeURIComponent(pw);
+    script.onerror = function(){ cleanup(); resolve(null); };
+    document.body.appendChild(script);
+  });
+
+  if(testResult && testResult.error === 'unauthorized'){
+    document.getElementById('login-error').textContent = 'Incorrect password — try again.';
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  if(testResult === null){
+    document.getElementById('login-error').textContent = 'Could not reach the backend — check your connection.';
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+
+  ADMIN_PW = pw;
+  localStorage.setItem('rr-admin-pw', pw);
+  unlockApp();
+}
+
+document.getElementById('login-password').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') attemptLogin();
+});
+
+// On load, try any previously-saved password automatically
+(function(){
+  const saved = localStorage.getItem('rr-admin-pw');
+  if(saved){
+    ADMIN_PW = saved;
+    unlockApp();
+  }
+})();
 
 async function loadKits(){
   return new Promise((resolve) => {
@@ -315,7 +399,13 @@ async function loadKits(){
     }
 
     window[callbackName] = function(data){
-      kits = data || [];
+      if(data && data.error === 'unauthorized'){
+        cleanup();
+        showLoginScreen('Session expired — please log in again.');
+        resolve();
+        return;
+      }
+      kits = Array.isArray(data) ? data : [];
       render();
       cleanup();
       resolve();
@@ -323,7 +413,7 @@ async function loadKits(){
 
     const script = document.createElement('script');
     script.id = callbackName;
-    script.src = BACKEND_URL + '?action=list&callback=' + callbackName;
+    script.src = BACKEND_URL + '?action=list&callback=' + callbackName + '&password=' + encodeURIComponent(ADMIN_PW);
     script.onerror = function(){
       console.error('Backend load error — check the deployment URL and access settings.');
       kits = [];
@@ -367,6 +457,7 @@ function daysUntil(dateStr){
 }
 
 function kitSeverity(kit){
+  if(kit.status === 'pending') return 'warn';
   if(kit.status === 'flagged') return 'bad';
   if(kit.status === 'retired') return 'ok';
   let minDays = null;
@@ -383,6 +474,7 @@ function kitSeverity(kit){
 }
 
 function severityLabel(kit, sev){
+  if(kit.status === 'pending') return 'New inquiry — needs setup';
   if(kit.status === 'flagged') return 'Flagged for service';
   if(kit.status === 'retired') return 'Retired';
   if(sev === 'bad') return 'Component expired';
@@ -498,8 +590,6 @@ function openKitModal(id){
     document.getElementById('kit-client').value = k.client || '';
     document.getElementById('kit-client-email').value = k.clientEmail || '';
     document.getElementById('kit-address').value = k.address || '';
-    document.getElementById('kit-lat').value = k.lat || '';
-    document.getElementById('kit-lng').value = k.lng || '';
     document.getElementById('kit-install').value = k.installDate || '';
     document.getElementById('kit-status').value = k.status || 'active';
     renderComponents(k.components||[]);
@@ -514,8 +604,6 @@ function openKitModal(id){
     document.getElementById('kit-client').value = '';
     document.getElementById('kit-client-email').value = '';
     document.getElementById('kit-address').value = '';
-    document.getElementById('kit-lat').value = '';
-    document.getElementById('kit-lng').value = '';
     document.getElementById('kit-install').value = new Date().toISOString().slice(0,10);
     document.getElementById('kit-status').value = 'active';
     renderComponents([]);
@@ -580,6 +668,20 @@ function addLogEntry(){
   document.getElementById('new-log-note').value = '';
 }
 
+async function geocodeAddress(address){
+  if(!address) return { lat: '', lng: '' };
+  try{
+    const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(address));
+    const results = await res.json();
+    if(results && results.length){
+      return { lat: results[0].lat, lng: results[0].lon };
+    }
+  }catch(e){
+    console.error('Geocoding failed', e);
+  }
+  return { lat: '', lng: '' };
+}
+
 async function saveKit(){
   const type = document.getElementById('kit-type').value;
   let code = document.getElementById('kit-code').value.trim();
@@ -590,14 +692,21 @@ async function saveKit(){
     expiry: row.querySelector('.comp-expiry').value
   })).filter(c=>c.name);
 
+  const address = document.getElementById('kit-address').value.trim();
+  const saveBtn = document.querySelector('#kit-modal .btn-primary');
+  const originalBtnText = saveBtn ? saveBtn.textContent : '';
+  if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Locating address...'; }
+  const coords = await geocodeAddress(address);
+  if(saveBtn){ saveBtn.textContent = originalBtnText; }
+
   const kitData = {
     type,
     code,
     client: document.getElementById('kit-client').value.trim(),
     clientEmail: document.getElementById('kit-client-email').value.trim(),
-    address: document.getElementById('kit-address').value.trim(),
-    lat: document.getElementById('kit-lat').value.trim(),
-    lng: document.getElementById('kit-lng').value.trim(),
+    address,
+    lat: coords.lat,
+    lng: coords.lng,
     installDate: document.getElementById('kit-install').value,
     status: document.getElementById('kit-status').value,
     components
@@ -612,7 +721,8 @@ async function saveKit(){
     kitData.serviceLog = window._pendingLog || [];
     window._pendingLog = [];
   }
-  await postToBackend({ action: 'save', kit: kitData });
+  await postToBackend({ action: 'save', kit: kitData, password: ADMIN_PW });
+  if(saveBtn){ saveBtn.disabled = false; }
   await loadKits();
   closeKitModal();
 }
@@ -620,7 +730,7 @@ async function saveKit(){
 async function deleteKit(){
   if(!currentEditId) return;
   if(!confirm('Delete this kit permanently? This cannot be undone.')) return;
-  await postToBackend({ action: 'delete', id: currentEditId });
+  await postToBackend({ action: 'delete', id: currentEditId, password: ADMIN_PW });
   await loadKits();
   closeKitModal();
 }
@@ -690,8 +800,6 @@ function printQR(){
   `);
   w.document.close();
 }
-
-loadKits();
 
 // ===== MONTHLY REPORTS =====
 // Actual sending now happens automatically server-side (see the Apps Script
@@ -780,11 +888,13 @@ async function sendAllReportsNow(){
   if(!confirm("Send this month's reports to every client with an email on file, right now?")) return;
   const btn = document.getElementById('send-all-btn');
   if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
-  await postToBackend({ action: 'sendMonthlyNow' });
+  await postToBackend({ action: 'sendMonthlyNow', password: ADMIN_PW });
   if(btn){ btn.disabled = false; btn.textContent = 'Send All Now'; }
   alert('Requested — emails are being sent by the backend now. Check your inbox in a minute to confirm.');
 }
 </script>
+
+</div>
 
 </body>
 </html>
