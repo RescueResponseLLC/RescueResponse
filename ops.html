@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
   :root{
     --bg:#0E1620; --bg-alt:#16212B; --bg-card:#1B2730;
@@ -233,6 +234,18 @@
 </main>
 
 <!-- KIT MODAL -->
+<div class="modal-overlay" id="scanner-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="close-row">
+      <h2>Scan Sticker</h2>
+      <button class="x-btn" onclick="closeScanner()">✕</button>
+    </div>
+    <p class="sub" style="margin-bottom:14px;">Point your camera at the QR sticker already on the box.</p>
+    <div id="qr-reader" style="width:100%;"></div>
+    <p id="scan-status" style="font-size:13px; color:var(--text-dim); margin-top:10px;"></p>
+  </div>
+</div>
+
 <div class="modal-overlay" id="kit-modal">
   <div class="modal">
     <div class="close-row">
@@ -254,7 +267,8 @@
       </div>
       <div>
         <label for="kit-code">Kit ID</label>
-        <input id="kit-code" placeholder="auto-generated">
+        <input id="kit-code" placeholder="scan or enter manually">
+        <button type="button" class="btn btn-ghost btn-small" style="margin-top:-8px; margin-bottom:14px;" onclick="openScanner()">📷 Scan Sticker</button>
       </div>
     </div>
     <label for="kit-client">Client / Location Name</label>
@@ -315,6 +329,44 @@ let currentEditId = null;
 let leafletMap = null;
 let mapMarkers = [];
 let ADMIN_PW = '';
+
+// ===== CAMERA QR SCANNER (for pre-printed stickers) =====
+let html5QrScanner = null;
+
+function openScanner(){
+  document.getElementById('scanner-modal').classList.add('open');
+  document.getElementById('scan-status').textContent = 'Starting camera...';
+  html5QrScanner = new Html5Qrcode('qr-reader');
+  html5QrScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: 220 },
+    (decodedText) => {
+      // Sticker encodes a full URL like https://rescueradius.com/report.html?kit=RR-0034
+      let code = decodedText;
+      try{
+        const url = new URL(decodedText);
+        const kitParam = url.searchParams.get('kit');
+        if(kitParam) code = kitParam;
+      }catch(e){
+        // Not a full URL — use whatever was scanned as-is
+      }
+      document.getElementById('kit-code').value = code;
+      renderQRCode(code, document.getElementById('kit-client').value.trim());
+      closeScanner();
+    },
+    () => { /* ignore per-frame scan failures — this fires constantly while searching */ }
+  ).catch((err) => {
+    document.getElementById('scan-status').textContent = 'Could not start camera — check permissions and try again.';
+  });
+}
+
+function closeScanner(){
+  document.getElementById('scanner-modal').classList.remove('open');
+  if(html5QrScanner){
+    html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(() => {});
+    html5QrScanner = null;
+  }
+}
 
 const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbz8Wc4Kb736qB8ykJfMM3H4iiWd0q4kSQtjGbOQvG1-5wR-MSRA-rOVTgthWzzjFucQbA/exec';
 
