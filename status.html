@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kit Status — RescueRadius</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 
@@ -35,14 +36,25 @@
 
 <section>
   <div class="wrap">
-    <div style="max-width:420px; display:flex; gap:10px; margin-bottom:32px;">
+    <div style="max-width:420px; display:flex; gap:10px; margin-bottom:14px;">
       <input id="status-kit-id" placeholder="e.g. STB-4821" style="flex:1;">
       <button class="btn btn-primary" onclick="checkStatus()">Check</button>
     </div>
+    <button class="btn btn-ghost" style="margin-bottom:32px;" onclick="openScanner()">📷 Scan QR Instead</button>
 
     <div id="status-result"></div>
   </div>
 </section>
+
+<div class="modal-overlay" id="scanner-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--bg-card); border:1px solid var(--line); border-radius:6px; padding:24px; max-width:400px; width:100%;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h3 style="font-size:16px; font-weight:700;">Scan Kit QR Code</h3>
+      <button onclick="closeScanner()" style="background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer;">✕</button>
+    </div>
+    <div id="qr-reader" style="width:100%; min-height:280px; background:#000; border-radius:4px; overflow:hidden;"></div>
+  </div>
+</div>
 
 <footer>
   <div class="footer-inner">
@@ -114,6 +126,37 @@
   document.getElementById('status-kit-id').addEventListener('keydown', function(e){
     if(e.key === 'Enter') checkStatus();
   });
+
+  let html5QrScanner = null;
+  function openScanner(){
+    document.getElementById('scanner-modal').style.display = 'flex';
+    html5QrScanner = new Html5Qrcode('qr-reader');
+    setTimeout(() => {
+    html5QrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: 220 },
+      (decodedText) => {
+        let code = decodedText;
+        try{
+          const url = new URL(decodedText);
+          const kitParam = url.searchParams.get('kit');
+          if(kitParam) code = kitParam;
+        }catch(e){}
+        document.getElementById('status-kit-id').value = code;
+        closeScanner();
+        checkStatus();
+      },
+      () => {}
+    ).catch(() => { alert('Could not start camera — check permissions and try again.'); });
+    }, 150);
+  }
+  function closeScanner(){
+    document.getElementById('scanner-modal').style.display = 'none';
+    if(html5QrScanner){
+      html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(() => {});
+      html5QrScanner = null;
+    }
+  }
 </script>
 </body>
 </html>

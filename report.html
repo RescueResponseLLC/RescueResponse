@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Report Kit Usage — RescueRadius</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 
@@ -39,6 +40,7 @@
       <div>
         <label for="kit-id">Kit ID</label>
         <input id="kit-id" name="kit_id" type="text" required placeholder="e.g. STB-4821">
+        <button type="button" class="btn btn-ghost" style="margin-top:8px; font-size:13px; padding:8px 14px;" onclick="openScanner()">📷 Scan QR Instead</button>
       </div>
       <div>
         <label for="what">What happened?</label>
@@ -60,6 +62,16 @@
     </div>
   </div>
 </section>
+
+<div id="scanner-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--bg-card); border:1px solid var(--line); border-radius:6px; padding:24px; max-width:400px; width:100%;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h3 style="font-size:16px; font-weight:700;">Scan Kit QR Code</h3>
+      <button onclick="closeScanner()" style="background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer;">✕</button>
+    </div>
+    <div id="qr-reader" style="width:100%; min-height:280px; background:#000; border-radius:4px; overflow:hidden;"></div>
+  </div>
+</div>
 
 <footer>
   <div class="footer-inner">
@@ -90,7 +102,7 @@
     document.getElementById('kit-id').value = kitParam;
   }
 
-  const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwjaJR4tWTLuKuuCO0RKnG0C3J3May8MBgCgtWwm8IqA49beqIBwWIxQLFEYXiLsiS63w/exec';
+  const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbz8Wc4Kb736qB8ykJfMM3H4iiWd0q4kSQtjGbOQvG1-5wR-MSRA-rOVTgthWzzjFucQbA/exec';
 
   document.getElementById('usage-form').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -116,6 +128,36 @@
       document.querySelector('.form-success').style.display = 'block';
     });
   });
+
+  let html5QrScanner = null;
+  function openScanner(){
+    document.getElementById('scanner-modal').style.display = 'flex';
+    html5QrScanner = new Html5Qrcode('qr-reader');
+    setTimeout(() => {
+    html5QrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: 220 },
+      (decodedText) => {
+        let code = decodedText;
+        try{
+          const url = new URL(decodedText);
+          const kitParam = url.searchParams.get('kit');
+          if(kitParam) code = kitParam;
+        }catch(e){}
+        document.getElementById('kit-id').value = code;
+        closeScanner();
+      },
+      () => {}
+    ).catch(() => { alert('Could not start camera — check permissions and try again.'); });
+    }, 150);
+  }
+  function closeScanner(){
+    document.getElementById('scanner-modal').style.display = 'none';
+    if(html5QrScanner){
+      html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(() => {});
+      html5QrScanner = null;
+    }
+  }
 </script>
 </body>
 </html>

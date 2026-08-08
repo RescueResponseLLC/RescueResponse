@@ -241,7 +241,7 @@
       <button class="x-btn" onclick="closeScanner()">✕</button>
     </div>
     <p class="sub" style="margin-bottom:14px;">Point your camera at the QR sticker already on the box.</p>
-    <div id="qr-reader" style="width:100%;"></div>
+    <div id="qr-reader" style="width:100%; min-height:280px; background:#000; border-radius:4px; overflow:hidden;"></div>
     <p id="scan-status" style="font-size:13px; color:var(--text-dim); margin-top:10px;"></p>
   </div>
 </div>
@@ -337,6 +337,7 @@ function openScanner(){
   document.getElementById('scanner-modal').classList.add('open');
   document.getElementById('scan-status').textContent = 'Starting camera...';
   html5QrScanner = new Html5Qrcode('qr-reader');
+  setTimeout(() => {
   html5QrScanner.start(
     { facingMode: 'environment' },
     { fps: 10, qrbox: 220 },
@@ -358,6 +359,7 @@ function openScanner(){
   ).catch((err) => {
     document.getElementById('scan-status').textContent = 'Could not start camera — check permissions and try again.';
   });
+  }, 150);
 }
 
 function closeScanner(){
