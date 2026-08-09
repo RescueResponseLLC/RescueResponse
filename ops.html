@@ -262,7 +262,7 @@
           <option>Naloxone</option>
           <option>Fire Extinguisher</option>
           <option>Outdoor AED</option>
-          <option>MCI Kit</option>
+          <option>Mass Casualty Kit</option>
           <option>Custom Kit</option>
         </select>
       </div>
@@ -499,7 +499,7 @@ async function postToBackend(payload){
 }
 
 function genId(type){
-  const prefix = {'Stop the Bleed':'STB','Naloxone':'NLX','Fire Extinguisher':'FIRE','Outdoor AED':'AED','MCI Kit':'MCI','Custom Kit':'CUST'}[type] || 'KIT';
+  const prefix = {'Stop the Bleed':'STB','Naloxone':'NLX','Fire Extinguisher':'FIRE','Outdoor AED':'AED','Mass Casualty Kit':'MCI','Custom Kit':'CUST'}[type] || 'KIT';
   const num = Math.floor(1000 + Math.random()*8999);
   return `${prefix}-${num}`;
 }
