@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kit Status — RescueRadius</title>
+<title>Kit Status | RescueRadius</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
@@ -30,7 +30,7 @@
   <div class="wrap">
     <div class="eyebrow">Kit Status</div>
     <h1>Check your equipment's status</h1>
-    <p>Enter a kit's ID to see whether it's active and when it was last serviced — no login needed.</p>
+    <p>Enter a kit's ID to see whether it's active and when it was last serviced. No login needed.</p>
   </div>
 </header>
 
@@ -98,7 +98,7 @@
     function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
 
     function showError(){
-      resultBox.innerHTML = '<div class="note-banner"><p>Could not reach the status service right now — try again in a moment, or contact us directly.</p></div>';
+      resultBox.innerHTML = '<div class="note-banner"><p>Could not reach the status service right now. Try again in a moment, or contact us directly.</p></div>';
     }
 
     window[cb] = function(data){
@@ -109,7 +109,7 @@
       }
       resultBox.innerHTML = `
         <div class="note-banner">
-          <h3>${data.code} — ${data.type}</h3>
+          <h3>${data.code} (${data.type})</h3>
           <p><strong style="color:var(--text);">Status:</strong> ${data.statusLabel}</p>
           <p><strong style="color:var(--text);">Last serviced:</strong> ${data.lastServiceDate || 'No service recorded yet'}</p>
         </div>
@@ -147,7 +147,7 @@
         checkStatus();
       },
       () => {}
-    ).catch(() => { alert('Could not start camera — check permissions and try again.'); });
+    ).catch(() => { alert('Could not start camera. Check permissions and try again.'); });
     }, 150);
   }
   function closeScanner(){
