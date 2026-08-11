@@ -36,6 +36,11 @@
 
 <section>
   <div class="wrap">
+    <style>
+      .chip-group{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 4px;}
+      .chip{padding:9px 14px; border-radius:20px; border:1px solid var(--line); background:var(--bg-card); color:var(--text-dim); font-size:14px; cursor:pointer; user-select:none; transition:all .15s;}
+      .chip.selected{background:var(--accent); border-color:var(--accent); color:#fff;}
+    </style>
     <form class="contact-form" id="usage-form" style="max-width:480px;">
       <div>
         <label for="kit-id">Kit ID</label>
@@ -43,8 +48,33 @@
         <button type="button" class="btn btn-ghost" style="margin-top:8px; font-size:13px; padding:8px 14px;" onclick="openScanner()">📷 Scan QR Instead</button>
       </div>
       <div>
-        <label for="what">What happened?</label>
-        <textarea id="what" name="message" required placeholder="What was used, and anything else worth knowing"></textarea>
+        <label>What was used? (tap all that apply)</label>
+        <div class="chip-group" id="items-used">
+          <div class="chip" data-value="Tourniquet">Tourniquet</div>
+          <div class="chip" data-value="Combat Gauze">Combat Gauze</div>
+          <div class="chip" data-value="Chest Seal">Chest Seal</div>
+          <div class="chip" data-value="Bandage/Dressing">Bandage / Dressing</div>
+          <div class="chip" data-value="Gloves/PPE">Gloves / PPE</div>
+          <div class="chip" data-value="Naloxone">Naloxone</div>
+          <div class="chip" data-value="Burn Dressing">Burn Dressing</div>
+          <div class="chip" data-value="Cold Pack">Cold Pack</div>
+          <div class="chip" data-value="Other">Other</div>
+        </div>
+      </div>
+      <div>
+        <label>What kind of situation? (tap one)</label>
+        <div class="chip-group" id="incident-type">
+          <div class="chip" data-value="Bleeding/Injury">Bleeding / Injury</div>
+          <div class="chip" data-value="Burn">Burn</div>
+          <div class="chip" data-value="Overdose">Overdose</div>
+          <div class="chip" data-value="Cardiac">Cardiac</div>
+          <div class="chip" data-value="Training/Practice">Training / Practice</div>
+          <div class="chip" data-value="Other">Other</div>
+        </div>
+      </div>
+      <div>
+        <label for="what">Anything else worth knowing? (optional)</label>
+        <textarea id="what" name="message" placeholder="Only if there's something the taps above didn't cover"></textarea>
       </div>
       <div>
         <label for="reporter">Your name (optional)</label>
@@ -104,6 +134,25 @@
 
   const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbz8Wc4Kb736qB8ykJfMM3H4iiWd0q4kSQtjGbOQvG1-5wR-MSRA-rOVTgthWzzjFucQbA/exec';
 
+  // Chip selection state
+  const itemsUsed = new Set();
+  document.querySelectorAll('#items-used .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('selected');
+      if (chip.classList.contains('selected')) itemsUsed.add(chip.dataset.value);
+      else itemsUsed.delete(chip.dataset.value);
+    });
+  });
+
+  let incidentType = '';
+  document.querySelectorAll('#incident-type .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#incident-type .chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      incidentType = chip.dataset.value;
+    });
+  });
+
   document.getElementById('usage-form').addEventListener('submit', function (e) {
     e.preventDefault();
     const form = e.target;
@@ -113,6 +162,8 @@
     const payload = {
       action: 'reportUsage',
       kitCode: document.getElementById('kit-id').value.trim(),
+      itemsUsed: Array.from(itemsUsed),
+      incidentType: incidentType,
       message: document.getElementById('what').value.trim(),
       reporterName: document.getElementById('reporter').value.trim(),
       reporterContact: document.getElementById('reporter-contact').value.trim()
