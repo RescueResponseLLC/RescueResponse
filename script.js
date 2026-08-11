@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(function () {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send'; }
           var note = form.querySelector('.submit-note');
-          if (note) { note.textContent = 'Something went wrong — please reach us directly at RescueRadius@outlook.com or (207) 350-9787.'; }
+          if (note) { note.textContent = 'Something went wrong — please reach us directly at RescueRadius@outlook.com or (208) 918-3185.'; }
         });
     });
   });
