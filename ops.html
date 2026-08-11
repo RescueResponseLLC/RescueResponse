@@ -276,7 +276,7 @@
         <select id="kit-type">
           <option>Stop the Bleed</option>
           <option>Naloxone</option>
-          <option>Kitchen Stop the Bleed & Burn Kit</option>
+          <option>Kitchen Box: Stop the Bleed & Major Burn Care</option>
           <option>Fire Extinguisher</option>
           <option>Outdoor AED</option>
           <option>Mass Casualty Kit</option>
@@ -516,7 +516,7 @@ async function postToBackend(payload){
 }
 
 function genId(type){
-  const prefix = {'Stop the Bleed':'STB','Naloxone':'NLX','Kitchen Stop the Bleed & Burn Kit':'KTCH','Fire Extinguisher':'FIRE','Outdoor AED':'AED','Mass Casualty Kit':'MCI','Custom Kit':'CUST'}[type] || 'KIT';
+  const prefix = {'Stop the Bleed':'STB','Naloxone':'NLX','Kitchen Box: Stop the Bleed & Major Burn Care':'KTCH','Fire Extinguisher':'FIRE','Outdoor AED':'AED','Mass Casualty Kit':'MCI','Custom Kit':'CUST'}[type] || 'KIT';
   const num = Math.floor(1000 + Math.random()*8999);
   return `${prefix}-${num}`;
 }
