@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var serviceType = form.dataset.serviceType || 'General Inquiry';
       var nameField = form.querySelector('[name="name"]');
       var emailField = form.querySelector('[name="email"]');
+      var phoneField = form.querySelector('[name="phone"]');
       var messageField = form.querySelector('[name="message"]');
       fetch(BACKEND_URL, {
         method: 'POST',
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
           type: serviceType,
           client: nameField ? nameField.value : '',
           clientEmail: emailField ? emailField.value : '',
+          clientPhone: phoneField ? phoneField.value : '',
           message: messageField ? messageField.value : ''
         })
       }).catch(function(){ /* non-critical — email still sends below */ });
