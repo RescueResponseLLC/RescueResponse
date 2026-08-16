@@ -95,7 +95,11 @@
   .modal .close-row h2{margin:0;}
   .x-btn{background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer;}
 
-  .component-row{display:flex; gap:8px; align-items:center; margin-bottom:8px;}
+  .component-row{display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--line);}
+  .component-row .comp-name{flex:1 1 100%;}
+  .component-row .comp-expiry{flex:1 1 auto; min-width:130px;}
+  .component-row .restock-label{flex:0 0 auto; white-space:nowrap;}
+  .component-row .remove-x{flex:0 0 auto; margin-left:auto;}
   .component-row input{margin-bottom:0;}
   .remove-x{background:none; border:none; color:var(--bad); cursor:pointer; font-size:16px; padding:4px 8px;}
 
@@ -884,9 +888,9 @@ function addComponentRow(name='', expiry='', noExpiry=false, needsRestock=false)
   row.innerHTML = `
     <input placeholder="Component (e.g. Tourniquet)" value="${name}" class="comp-name">
     ${noExpiry
-      ? `<span class="sub" style="max-width:160px; display:flex; align-items:center; justify-content:center;">No expiration</span><input type="hidden" class="comp-expiry" value="">`
-      : `<input type="date" value="${expiry}" class="comp-expiry" style="max-width:160px;">`}
-    <label style="display:flex; align-items:center; gap:4px; font-size:12px; white-space:nowrap;">
+      ? `<span class="sub comp-expiry-label" style="white-space:nowrap;">No expiration</span><input type="hidden" class="comp-expiry" value="">`
+      : `<input type="date" value="${expiry}" class="comp-expiry">`}
+    <label class="restock-label" style="display:flex; align-items:center; gap:4px; font-size:12px;">
       <input type="checkbox" class="comp-restock" ${needsRestock ? 'checked' : ''}> Needs restock
     </label>
     <button class="remove-x" onclick="this.parentElement.remove()">✕</button>
