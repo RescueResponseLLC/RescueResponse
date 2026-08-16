@@ -196,7 +196,7 @@
     <h1>Placement Map</h1>
     <p class="sub">Kits with saved coordinates. Green = current, amber = due soon, red = flagged/used.</p>
     <div id="map"></div>
-    <p class="sub" style="margin-top:-8px;">Add latitude/longitude when creating or editing a kit to plot it here — grab coordinates from Google Maps by long-pressing a location.</p>
+    <p class="sub" style="margin-top:-8px;">Kits plot here automatically once they have an address saved — no coordinates to enter yourself.</p>
   </div>
 
   <!-- REPORT USAGE -->
@@ -290,7 +290,7 @@
     <div class="form-row">
       <div>
         <label for="kit-type">Type</label>
-        <select id="kit-type">
+        <select id="kit-type" onchange="if(!currentEditId) populateStandardContents();">
           <option>Stop the Bleed</option>
           <option>Naloxone</option>
           <option>Kitchen Bleed and Burn Box</option>
@@ -835,7 +835,7 @@ function openKitModal(id){
     document.getElementById('kit-address').value = '';
     document.getElementById('kit-install').value = new Date().toISOString().slice(0,10);
     document.getElementById('kit-status').value = 'active';
-    renderComponents([]);
+    populateStandardContents();
     renderLog([]);
     document.getElementById('kit-code').value = genId('Stop the Bleed');
     renderQRCode(document.getElementById('kit-code').value, '');
@@ -853,6 +853,29 @@ function renderComponents(components){
   wrap.innerHTML = '';
   components.forEach(c=>addComponentRow(c.name, c.expiry));
   if(components.length===0) addComponentRow();
+}
+
+// Standard contents per kit type — matches what's actually listed on each service page
+const STANDARD_CONTENTS = {
+  'Stop the Bleed': ['Tourniquet', 'Combat Gauze', 'Chest Seal', 'Emergency Bandage', 'Trauma Shears', 'Basic Gauze'],
+  'Naloxone': ['Naloxone', 'Positioning Donut', 'CPR Mask', 'Gloves/PPE'],
+  'Kitchen Bleed and Burn Box': ['Tourniquet', 'Combat Gauze', 'Chest Seal', 'Emergency Bandage', 'Dry Burn Sheet', 'Hydrogel Dressing'],
+  'Fire Extinguisher': ['Fire Extinguisher'],
+  'Outdoor AED': ['AED', 'CPR Mask'],
+  'Mass Casualty Kit': ['Tourniquet', 'Chest Seal', 'CPR Mask', 'Emergency Blanket', 'AED'],
+  'Custom Kit': []
+};
+
+function populateStandardContents(){
+  const type = document.getElementById('kit-type').value;
+  const list = STANDARD_CONTENTS[type] || [];
+  const wrap = document.getElementById('components-wrap');
+  wrap.innerHTML = '';
+  if(list.length === 0){
+    addComponentRow(); // Custom Kit or unknown type — just give one blank row
+  } else {
+    list.forEach(name => addComponentRow(name, ''));
+  }
 }
 
 function addComponentRow(name='', expiry=''){
