@@ -160,7 +160,6 @@
       <button class="nav-btn active" data-view="dashboard">Dashboard</button>
       <button class="nav-btn" data-view="inventory">Inventory</button>
       <button class="nav-btn" data-view="map">Map</button>
-      <button class="nav-btn" data-view="report">Report Usage</button>
       <button class="nav-btn" data-view="reports">Monthly Reports</button>
       <button class="nav-btn" data-view="analytics">Analytics</button>
       <button class="nav-btn" data-view="routes">Route Planning</button>
@@ -197,24 +196,6 @@
     <p class="sub">Kits with saved coordinates. Green = current, amber = due soon, red = flagged/used.</p>
     <div id="map"></div>
     <p class="sub" style="margin-top:-8px;">Kits plot here automatically once they have an address saved — no coordinates to enter yourself.</p>
-  </div>
-
-  <!-- REPORT USAGE -->
-  <div class="view" id="view-report">
-    <h1>Report a Used or Depleted Kit</h1>
-    <p class="sub">If a RescueRadius kit was used or something's missing, let us know here — this flags it for restock automatically.</p>
-    <div class="report-form" id="report-form-wrap">
-      <label for="report-id">Kit ID</label>
-      <input id="report-id" placeholder="e.g. STB-4821">
-      <label for="report-what">What happened?</label>
-      <textarea id="report-what" rows="4" placeholder="What was used, and anything else worth knowing"></textarea>
-      <label for="report-name">Your name (optional)</label>
-      <input id="report-name" placeholder="Optional">
-      <button class="btn btn-primary" onclick="submitUsageReport()">Submit Report</button>
-    </div>
-    <div class="report-success" id="report-success">
-      <p>Thanks — this kit's been flagged for restock and RescueRadius has been notified.</p>
-    </div>
   </div>
 
   <!-- MONTHLY REPORTS -->
@@ -311,7 +292,10 @@
     <label for="kit-client-email">Client Email</label>
     <input id="kit-client-email" placeholder="for monthly reports" type="email">
     <label for="kit-address">Address</label>
-    <input id="kit-address" placeholder="Street, City, ID — map coordinates fill in automatically">
+    <div style="position:relative;">
+      <input id="kit-address" placeholder="Start typing an address..." autocomplete="off">
+      <div id="address-suggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:var(--bg-card); border:1px solid var(--line); border-top:none; z-index:20; max-height:220px; overflow-y:auto;"></div>
+    </div>
     <div class="form-row">
       <div>
         <label for="kit-install">Install Date</label>
@@ -328,13 +312,14 @@
       </div>
     </div>
 
-    <div class="section-label" style="margin-top:8px;">Kit QR Code</div>
+    <div class="section-label" style="margin-top:8px;">Assigned QR Code</div>
+    <p class="sub" style="margin-top:-4px;">This confirms which pre-printed card this kit is paired with — scan the physical sticker above to assign it, rather than typing a code by hand.</p>
     <div id="qr-wrap" style="background:#fff; padding:16px; border-radius:4px; display:inline-flex; flex-direction:column; align-items:center; gap:8px;">
       <div id="qr-code"></div>
       <div id="qr-code-label" style="font-family:var(--font-mono); font-size:11px; color:#0E1620; font-weight:600;"></div>
     </div>
     <div style="margin-top:8px;">
-      <button class="btn btn-ghost btn-small" onclick="printQR()">Print QR Sticker</button>
+      <button class="btn btn-ghost btn-small" id="log-inspection-btn" onclick="logInspectionNow()" style="display:none;">Log Inspection Visit (Today)</button>
     </div>
 
     <div class="section-label" style="margin-top:8px;">Components &amp; Expirations</div>
@@ -813,6 +798,7 @@ function openKitModal(id){
     const k = kits.find(x=>x.id===id);
     title.textContent = 'Edit Kit';
     deleteBtn.style.display = 'inline-block';
+    document.getElementById('log-inspection-btn').style.display = 'inline-block';
     document.getElementById('kit-id-hidden').value = k.id;
     document.getElementById('kit-type').value = k.type;
     document.getElementById('kit-code').value = k.code || '';
@@ -827,6 +813,7 @@ function openKitModal(id){
   }else{
     title.textContent = 'Add Kit';
     deleteBtn.style.display = 'none';
+    document.getElementById('log-inspection-btn').style.display = 'none';
     document.getElementById('kit-id-hidden').value = '';
     document.getElementById('kit-type').value = 'Stop the Bleed';
     document.getElementById('kit-code').value = '';
@@ -851,18 +838,30 @@ function closeKitModal(){
 function renderComponents(components){
   const wrap = document.getElementById('components-wrap');
   wrap.innerHTML = '';
-  components.forEach(c=>addComponentRow(c.name, c.expiry));
+  const noExpiryNames = ['Trauma Shears'];
+  components.forEach(c=>addComponentRow(c.name, c.expiry, noExpiryNames.includes(c.name), !!c.needsRestock));
   if(components.length===0) addComponentRow();
 }
 
-// Standard contents per kit type — matches what's actually listed on each service page
+// Standard contents per kit type — matches what's actually listed on each service page.
+// Items with noExpiry:true skip the date field entirely (nothing to track — e.g. shears).
 const STANDARD_CONTENTS = {
-  'Stop the Bleed': ['Tourniquet', 'Combat Gauze', 'Chest Seal', 'Emergency Bandage', 'Trauma Shears', 'Basic Gauze'],
-  'Naloxone': ['Naloxone', 'Positioning Donut', 'CPR Mask', 'Gloves/PPE'],
-  'Kitchen Bleed and Burn Box': ['Tourniquet', 'Combat Gauze', 'Chest Seal', 'Emergency Bandage', 'Dry Burn Sheet', 'Hydrogel Dressing'],
-  'Fire Extinguisher': ['Fire Extinguisher'],
-  'Outdoor AED': ['AED', 'CPR Mask'],
-  'Mass Casualty Kit': ['Tourniquet', 'Chest Seal', 'CPR Mask', 'Emergency Blanket', 'AED'],
+  'Stop the Bleed': [
+    {name:'Tourniquet (x2)'}, {name:'Combat Gauze'}, {name:'Chest Seal'},
+    {name:'Emergency Bandage'}, {name:'Trauma Shears', noExpiry:true}, {name:'Basic Gauze (x2)'}
+  ],
+  'Naloxone': [
+    {name:'Naloxone'}, {name:'Positioning Donut'}, {name:'CPR Mask'}, {name:'Gloves/PPE'}
+  ],
+  'Kitchen Bleed and Burn Box': [
+    {name:'Tourniquet (x2)'}, {name:'Combat Gauze'}, {name:'Chest Seal'}, {name:'Emergency Bandage'},
+    {name:'Dry Burn Sheet'}, {name:'Hydrogel Dressing'}
+  ],
+  'Fire Extinguisher': [{name:'Fire Extinguisher'}],
+  'Outdoor AED': [{name:'AED'}, {name:'CPR Mask'}],
+  'Mass Casualty Kit': [
+    {name:'Tourniquet'}, {name:'Chest Seal'}, {name:'CPR Mask'}, {name:'Emergency Blanket'}, {name:'AED'}
+  ],
   'Custom Kit': []
 };
 
@@ -872,19 +871,24 @@ function populateStandardContents(){
   const wrap = document.getElementById('components-wrap');
   wrap.innerHTML = '';
   if(list.length === 0){
-    addComponentRow(); // Custom Kit or unknown type — just give one blank row
+    addComponentRow();
   } else {
-    list.forEach(name => addComponentRow(name, ''));
+    list.forEach(item => addComponentRow(item.name, '', item.noExpiry));
   }
 }
 
-function addComponentRow(name='', expiry=''){
+function addComponentRow(name='', expiry='', noExpiry=false, needsRestock=false){
   const wrap = document.getElementById('components-wrap');
   const row = document.createElement('div');
   row.className = 'component-row';
   row.innerHTML = `
     <input placeholder="Component (e.g. Tourniquet)" value="${name}" class="comp-name">
-    <input type="date" value="${expiry}" class="comp-expiry" style="max-width:160px;">
+    ${noExpiry
+      ? `<span class="sub" style="max-width:160px; display:flex; align-items:center; justify-content:center;">No expiration</span><input type="hidden" class="comp-expiry" value="">`
+      : `<input type="date" value="${expiry}" class="comp-expiry" style="max-width:160px;">`}
+    <label style="display:flex; align-items:center; gap:4px; font-size:12px; white-space:nowrap;">
+      <input type="checkbox" class="comp-restock" ${needsRestock ? 'checked' : ''}> Needs restock
+    </label>
     <button class="remove-x" onclick="this.parentElement.remove()">✕</button>
   `;
   wrap.appendChild(row);
@@ -934,6 +938,58 @@ async function geocodeAddress(address){
   return { lat: '', lng: '' };
 }
 
+// ---------- Address autocomplete ----------
+let addressSearchTimeout = null;
+let selectedAddressCoords = null;
+let selectedAddressLabel = null; // the exact text that was set when a suggestion was clicked
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('kit-address');
+  const suggBox = document.getElementById('address-suggestions');
+  if(!input) return;
+
+  input.addEventListener('input', () => {
+    selectedAddressCoords = null;
+    selectedAddressLabel = null;
+    const query = input.value.trim();
+    clearTimeout(addressSearchTimeout);
+    if(query.length < 4){ suggBox.style.display = 'none'; return; }
+
+    addressSearchTimeout = setTimeout(async () => {
+      try{
+        const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=us&q=' + encodeURIComponent(query));
+        const results = await res.json();
+        if(!results || !results.length){ suggBox.style.display = 'none'; return; }
+
+        suggBox.innerHTML = results.map(r => `
+          <div class="address-suggestion" data-lat="${r.lat}" data-lng="${r.lon}" data-label="${r.display_name.replace(/"/g,'&quot;')}"
+               style="padding:10px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--line);">
+            ${r.display_name}
+          </div>
+        `).join('');
+        suggBox.style.display = 'block';
+
+        suggBox.querySelectorAll('.address-suggestion').forEach(el => {
+          el.addEventListener('click', () => {
+            input.value = el.dataset.label;
+            selectedAddressCoords = { lat: el.dataset.lat, lng: el.dataset.lng };
+            selectedAddressLabel = el.dataset.label;
+            suggBox.style.display = 'none';
+          });
+          el.addEventListener('mouseenter', () => el.style.background = 'var(--bg)');
+          el.addEventListener('mouseleave', () => el.style.background = 'transparent');
+        });
+      }catch(e){
+        console.error('Address search failed', e);
+      }
+    }, 350); // debounce so it's not firing a request on every keystroke
+  });
+
+  document.addEventListener('click', (e) => {
+    if(e.target !== input) suggBox.style.display = 'none';
+  });
+});
+
 async function saveKit(){
   const type = document.getElementById('kit-type').value;
   let code = document.getElementById('kit-code').value.trim();
@@ -941,15 +997,21 @@ async function saveKit(){
 
   const components = Array.from(document.querySelectorAll('.component-row')).map(row=>({
     name: row.querySelector('.comp-name').value.trim(),
-    expiry: row.querySelector('.comp-expiry').value
+    expiry: row.querySelector('.comp-expiry').value,
+    needsRestock: row.querySelector('.comp-restock').checked
   })).filter(c=>c.name);
 
   const address = document.getElementById('kit-address').value.trim();
   const saveBtn = document.querySelector('#kit-modal .btn-primary');
   const originalBtnText = saveBtn ? saveBtn.textContent : '';
-  if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Locating address...'; }
-  const coords = await geocodeAddress(address);
-  if(saveBtn){ saveBtn.textContent = originalBtnText; }
+  let coords;
+  if(selectedAddressCoords && address === selectedAddressLabel){
+    coords = selectedAddressCoords; // picked from the dropdown — already have exact coordinates
+  } else {
+    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Locating address...'; }
+    coords = await geocodeAddress(address);
+    if(saveBtn){ saveBtn.textContent = originalBtnText; }
+  }
 
   const kitData = {
     type,
@@ -988,23 +1050,6 @@ async function deleteKit(){
 }
 
 // USAGE REPORT
-async function submitUsageReport(){
-  const idInput = document.getElementById('report-id').value.trim().toUpperCase();
-  const what = document.getElementById('report-what').value.trim();
-  const name = document.getElementById('report-name').value.trim();
-
-  if(!idInput || !what){
-    alert('Please enter the Kit ID and describe what happened.');
-    return;
-  }
-
-  await postToBackend({ action: 'reportUsage', kitCode: idInput, message: what, reporterName: name });
-  await loadKits();
-
-  document.getElementById('report-form-wrap').style.display = 'none';
-  document.getElementById('report-success').style.display = 'block';
-}
-
 const REPORT_BASE_URL = 'https://rescueradius.com/report.html';
 
 function renderQRCode(code, client){
@@ -1122,6 +1167,7 @@ function renderReports(){
         </div>
         <div style="display:flex; gap:8px;">
           <button class="btn btn-ghost btn-small" onclick="previewReport(${i})">Preview</button>
+          <button class="btn btn-primary btn-small" onclick="sendOneReportNow(${i})" ${!g.email ? 'disabled' : ''}>Send This Report</button>
         </div>
       </div>
     </div>
@@ -1143,6 +1189,25 @@ async function sendAllReportsNow(){
   await postToBackend({ action: 'sendMonthlyNow', password: ADMIN_PW });
   if(btn){ btn.disabled = false; btn.textContent = 'Send All Now'; }
   alert('Requested — emails are being sent by the backend now. Check your inbox in a minute to confirm.');
+}
+
+async function logInspectionNow(){
+  if(!currentEditId) return;
+  const btn = document.getElementById('log-inspection-btn');
+  btn.disabled = true; btn.textContent = 'Logging...';
+  await postToBackend({ action: 'logInspection', password: ADMIN_PW, id: currentEditId });
+  await loadKits();
+  const k = kits.find(x=>x.id===currentEditId);
+  if(k) renderLog(k.serviceLog||[]);
+  btn.disabled = false; btn.textContent = 'Log Inspection Visit (Today)';
+}
+
+async function sendOneReportNow(i){
+  const group = window._reportGroups[i];
+  if(!group.email){ alert('This client has no email on file.'); return; }
+  if(!confirm(`Send this month's report to ${group.client} (${group.email}) only?`)) return;
+  await postToBackend({ action: 'sendOneReport', password: ADMIN_PW, clientEmail: group.email });
+  alert(`Sent to ${group.client}.`);
 }
 </script>
 
