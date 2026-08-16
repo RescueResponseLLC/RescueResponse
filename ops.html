@@ -95,10 +95,14 @@
   .modal .close-row h2{margin:0;}
   .x-btn{background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer;}
 
-  .component-row{display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--line);}
-  .component-row .comp-name{flex:1 1 100%;}
-  .component-row .comp-expiry{flex:1 1 auto; min-width:130px;}
-  .component-row .restock-label{flex:0 0 auto; white-space:nowrap;}
+  .component-row{
+    display:flex; flex-direction:column; gap:8px;
+    margin-bottom:12px; padding:12px; background:var(--bg); border:1px solid var(--line); border-radius:4px;
+  }
+  .component-row .comp-name{width:100%; margin-bottom:0; box-sizing:border-box;}
+  .component-row .row-controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .component-row .comp-expiry{width:auto; flex:1 1 140px; margin-bottom:0; box-sizing:border-box;}
+  .component-row .restock-label{flex:0 0 auto; white-space:nowrap; display:flex; align-items:center; gap:4px; font-size:12px;}
   .component-row .remove-x{flex:0 0 auto; margin-left:auto;}
   .component-row input{margin-bottom:0;}
   .remove-x{background:none; border:none; color:var(--bad); cursor:pointer; font-size:16px; padding:4px 8px;}
@@ -887,13 +891,15 @@ function addComponentRow(name='', expiry='', noExpiry=false, needsRestock=false)
   row.className = 'component-row';
   row.innerHTML = `
     <input placeholder="Component (e.g. Tourniquet)" value="${name}" class="comp-name">
-    ${noExpiry
-      ? `<span class="sub comp-expiry-label" style="white-space:nowrap;">No expiration</span><input type="hidden" class="comp-expiry" value="">`
-      : `<input type="date" value="${expiry}" class="comp-expiry">`}
-    <label class="restock-label" style="display:flex; align-items:center; gap:4px; font-size:12px;">
-      <input type="checkbox" class="comp-restock" ${needsRestock ? 'checked' : ''}> Needs restock
-    </label>
-    <button class="remove-x" onclick="this.parentElement.remove()">✕</button>
+    <div class="row-controls">
+      ${noExpiry
+        ? `<span class="sub" style="white-space:nowrap;">No expiration</span><input type="hidden" class="comp-expiry" value="">`
+        : `<input type="date" value="${expiry}" class="comp-expiry">`}
+      <label class="restock-label">
+        <input type="checkbox" class="comp-restock" ${needsRestock ? 'checked' : ''}> Needs restock
+      </label>
+      <button class="remove-x" onclick="this.parentElement.parentElement.remove()">✕</button>
+    </div>
   `;
   wrap.appendChild(row);
 }
