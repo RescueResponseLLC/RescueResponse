@@ -163,6 +163,7 @@
       <button class="nav-btn" data-view="report">Report Usage</button>
       <button class="nav-btn" data-view="reports">Monthly Reports</button>
       <button class="nav-btn" data-view="analytics">Analytics</button>
+      <button class="nav-btn" data-view="routes">Route Planning</button>
     </nav>
   </div>
 </header>
@@ -246,6 +247,22 @@
     <div id="analytics-kit-types"></div>
     <div class="section-label">Currently Needs Restock (auto-flagged from reports)</div>
     <div id="analytics-restock"></div>
+  </div>
+
+  <!-- ROUTE PLANNING -->
+  <div class="view" id="view-routes">
+    <h1>Route Planning</h1>
+    <p class="sub">Groups your active kits into geographic clusters so each visit day covers kits that are actually near each other, not scattered across the whole valley. Only kits with saved coordinates are included.</p>
+    <div class="form-row" style="max-width:420px; margin-bottom:20px;">
+      <div>
+        <label for="cluster-size">Kits per visit day (target)</label>
+        <input id="cluster-size" type="number" value="6" min="2" max="20">
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button class="btn btn-primary" onclick="buildRoutes()" style="width:100%;">Build Route Groups</button>
+      </div>
+    </div>
+    <div id="routes-output"></div>
   </div>
 
 </main>
@@ -645,6 +662,88 @@ document.querySelectorAll('.nav-btn').forEach(btn=>{
     if(btn.dataset.view === 'analytics'){ loadAnalytics(); }
   });
 });
+
+// ---------- Route Planning: geographic clustering ----------
+
+function haversineMiles(lat1, lng1, lat2, lng2){
+  const toRad = d => d * Math.PI / 180;
+  const R = 3958.8; // Earth radius, miles
+  const dLat = toRad(lat2-lat1);
+  const dLng = toRad(lng2-lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function buildRoutes(){
+  const targetSize = parseInt(document.getElementById('cluster-size').value) || 6;
+  const output = document.getElementById('routes-output');
+
+  const mappable = kits.filter(k => k.lat && k.lng && k.status !== 'retired')
+    .map(k => ({...k, lat: parseFloat(k.lat), lng: parseFloat(k.lng)}));
+
+  if(mappable.length === 0){
+    output.innerHTML = '<p class="sub">No kits have saved coordinates yet. Add lat/lng when editing a kit to include it here.</p>';
+    return;
+  }
+
+  // Greedy nearest-neighbor clustering: seed a cluster with the farthest
+  // unclustered kit from the valley center (spreads clusters out geographically
+  // rather than always starting from the same corner), then pull in its
+  // nearest unclustered neighbors until the cluster hits target size.
+  const unclustered = [...mappable];
+  const clusters = [];
+  const centerLat = 43.6150, centerLng = -116.2023; // Treasure Valley center
+
+  while(unclustered.length > 0){
+    // Seed: farthest-from-center remaining kit
+    let seedIdx = 0, seedDist = -1;
+    unclustered.forEach((k, i) => {
+      const d = haversineMiles(centerLat, centerLng, k.lat, k.lng);
+      if(d > seedDist){ seedDist = d; seedIdx = i; }
+    });
+    const seed = unclustered.splice(seedIdx, 1)[0];
+    const cluster = [seed];
+
+    while(cluster.length < targetSize && unclustered.length > 0){
+      // Find the unclustered kit nearest to ANY kit already in this cluster
+      let bestIdx = -1, bestDist = Infinity;
+      unclustered.forEach((k, i) => {
+        const minDistToCluster = Math.min(...cluster.map(c => haversineMiles(c.lat, c.lng, k.lat, k.lng)));
+        if(minDistToCluster < bestDist){ bestDist = minDistToCluster; bestIdx = i; }
+      });
+      cluster.push(unclustered.splice(bestIdx, 1)[0]);
+    }
+    clusters.push(cluster);
+  }
+
+  // Within each cluster, order stops via simple nearest-neighbor path
+  // (a rough but useful visit order, not a true optimal route)
+  const orderedClusters = clusters.map(cluster => {
+    const remaining = [...cluster];
+    const path = [remaining.shift()];
+    while(remaining.length){
+      const last = path[path.length-1];
+      let bestIdx = 0, bestDist = Infinity;
+      remaining.forEach((k, i) => {
+        const d = haversineMiles(last.lat, last.lng, k.lat, k.lng);
+        if(d < bestDist){ bestDist = d; bestIdx = i; }
+      });
+      path.push(remaining.splice(bestIdx, 1)[0]);
+    }
+    let totalMiles = 0;
+    for(let i=1; i<path.length; i++) totalMiles += haversineMiles(path[i-1].lat, path[i-1].lng, path[i].lat, path[i].lng);
+    return { path, totalMiles };
+  });
+
+  output.innerHTML = orderedClusters.map((c, idx) => `
+    <div class="kit-card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:6px;">Day ${idx+1} — ${c.path.length} kit${c.path.length>1?'s':''}, ~${c.totalMiles.toFixed(1)} mi between stops</h3>
+      <ol style="margin:8px 0 0 20px; padding:0; font-size:14px;">
+        ${c.path.map(k => `<li style="margin-bottom:4px;"><strong>${k.code || k.id}</strong> (${k.type}) — ${k.address || 'No address on file'}</li>`).join('')}
+      </ol>
+    </div>
+  `).join('');
+}
 
 async function loadAnalytics(){
   const wrap = document.getElementById('analytics-stat-row');
