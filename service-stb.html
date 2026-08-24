@@ -95,6 +95,45 @@
   </div>
 </section>
 
+<!-- TEST MODE LINK — swap for the live Payment Link before real launch -->
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Ready to subscribe?</h2>
+    </div>
+    <div class="area-gate" style="max-width:420px; margin-bottom:20px;">
+      <label for="area-select">Confirm your county to continue</label>
+      <select id="area-select" onchange="checkServiceArea()">
+        <option value="">Select your county...</option>
+        <option value="yes">Ada County</option>
+        <option value="yes">Canyon County</option>
+        <option value="yes">Gem County</option>
+        <option value="yes">Boise County</option>
+        <option value="yes">Payette County</option>
+        <option value="no">Somewhere else in Idaho</option>
+        <option value="no">Outside Idaho</option>
+      </select>
+
+      <div id="area-yes" style="display:none; margin-top:14px;">
+        <a href="https://buy.stripe.com/test_6oUbIT9tL9UB7tD74TcZa01" class="btn btn-primary" target="_blank" rel="noopener">Subscribe Now</a>
+      </div>
+
+      <div id="area-no" class="note-banner" style="display:none; margin-top:14px;">
+        <p>We're currently serving Ada, Canyon, Gem, Boise, and Payette counties only. Reach out below and we'll let you know if we expand to your area.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  function checkServiceArea() {
+    var select = document.getElementById('area-select');
+    var value = select.options[select.selectedIndex].value;
+    document.getElementById('area-yes').style.display = value === 'yes' ? 'block' : 'none';
+    document.getElementById('area-no').style.display = value === 'no' ? 'block' : 'none';
+  }
+</script>
+
 <section>
   <div class="wrap">
     <p class="mission-text">Need something different? We'll build a custom kit around what your space actually needs and quote it directly. Just reach out.</p>
