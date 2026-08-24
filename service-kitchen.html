@@ -68,7 +68,7 @@
     <div class="eyebrow">06 / KITCHEN</div>
     <h1>Kitchen Bleed and Burn Box</h1>
     <div class="price-tag">$50 / month</div>
-    <p>Kitchens are one of the few places that reliably produce both severe cuts and serious burns. This kit covers both: full bleeding control plus real burn care, wall-mounted and ready, so staff aren't improvising with a wet towel and a first-aid box built for paper cuts.</p>
+    <p>Most kitchen injuries are minor, a nick, a small burn, handled with what's already under the sink. This kit isn't for that. It's for the worst-case version: a severe laceration or a serious burn, the kind a basic first-aid box was never built to handle.</p>
   </div>
 </header>
 
@@ -78,7 +78,7 @@
       <div class="eyebrow" style="color:var(--sage);">What's Included</div>
       <h2>Built for what actually happens in a kitchen</h2>
     </div>
-    <p>A kit built around the two things kitchens actually produce: severe bleeding and serious burns, with full bleeding control and real burn care in one wall-mounted box.</p>
+    <p>Built for the worst case, not the routine one: severe bleeding and serious burns, with full bleeding control and real burn care in one wall-mounted box.</p>
     <ul class="includes-list" style="margin-top:20px;">
       <li>CAT tourniquets</li>
       <li>Chest seals</li>
@@ -198,12 +198,57 @@
 
       form.style.display = 'none';
       document.getElementById('area-yes').style.display = 'block';
+      setTimeout(function () { window.location.href = 'https://buy.stripe.com/test_00w28j5dvaYF15f3SHcZa03'; }, 900);
     } else {
       document.getElementById('area-no').style.display = 'block';
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Continue'; }
     }
   });
+
+  // Address autocomplete — same source used in Ops, no typing the full address required
+  var addressSearchTimeout = null;
+  (function () {
+    var input = document.getElementById('po-address');
+    if (!input) return;
+    var suggBox = document.createElement('div');
+    suggBox.id = 'po-address-suggestions';
+    suggBox.style.cssText = 'display:none; position:absolute; background:var(--bg-card); border:1px solid var(--line); z-index:20; max-height:220px; overflow-y:auto; width:100%;';
+    input.parentElement.style.position = 'relative';
+    input.parentElement.appendChild(suggBox);
+
+    input.addEventListener('input', function () {
+      var query = input.value.trim();
+      clearTimeout(addressSearchTimeout);
+      if (query.length < 4) { suggBox.style.display = 'none'; return; }
+
+      addressSearchTimeout = setTimeout(function () {
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=us&q=' + encodeURIComponent(query))
+          .then(function (res) { return res.json(); })
+          .then(function (results) {
+            if (!results || !results.length) { suggBox.style.display = 'none'; return; }
+            suggBox.innerHTML = results.map(function (r) {
+              return '<div class="po-address-suggestion" style="padding:10px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--line);">' + r.display_name + '</div>';
+            }).join('');
+            suggBox.style.display = 'block';
+            suggBox.querySelectorAll('.po-address-suggestion').forEach(function (el) {
+              el.addEventListener('click', function () {
+                input.value = el.textContent;
+                suggBox.style.display = 'none';
+              });
+              el.addEventListener('mouseenter', function () { el.style.background = 'var(--bg)'; });
+              el.addEventListener('mouseleave', function () { el.style.background = 'transparent'; });
+            });
+          })
+          .catch(function () {});
+      }, 350);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target !== input) suggBox.style.display = 'none';
+    });
+  })();
 </script>
+
 
 <section id="contact">
   <div class="wrap">

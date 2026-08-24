@@ -194,7 +194,51 @@
       if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Continue'; }
     }
   });
+
+  // Address autocomplete — same source used in Ops, no typing the full address required
+  var addressSearchTimeout = null;
+  (function () {
+    var input = document.getElementById('po-address');
+    if (!input) return;
+    var suggBox = document.createElement('div');
+    suggBox.id = 'po-address-suggestions';
+    suggBox.style.cssText = 'display:none; position:absolute; background:var(--bg-card); border:1px solid var(--line); z-index:20; max-height:220px; overflow-y:auto; width:100%;';
+    input.parentElement.style.position = 'relative';
+    input.parentElement.appendChild(suggBox);
+
+    input.addEventListener('input', function () {
+      var query = input.value.trim();
+      clearTimeout(addressSearchTimeout);
+      if (query.length < 4) { suggBox.style.display = 'none'; return; }
+
+      addressSearchTimeout = setTimeout(function () {
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=us&q=' + encodeURIComponent(query))
+          .then(function (res) { return res.json(); })
+          .then(function (results) {
+            if (!results || !results.length) { suggBox.style.display = 'none'; return; }
+            suggBox.innerHTML = results.map(function (r) {
+              return '<div class="po-address-suggestion" style="padding:10px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--line);">' + r.display_name + '</div>';
+            }).join('');
+            suggBox.style.display = 'block';
+            suggBox.querySelectorAll('.po-address-suggestion').forEach(function (el) {
+              el.addEventListener('click', function () {
+                input.value = el.textContent;
+                suggBox.style.display = 'none';
+              });
+              el.addEventListener('mouseenter', function () { el.style.background = 'var(--bg)'; });
+              el.addEventListener('mouseleave', function () { el.style.background = 'transparent'; });
+            });
+          })
+          .catch(function () {});
+      }, 350);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target !== input) suggBox.style.display = 'none';
+    });
+  })();
 </script>
+
 
 <section id="contact">
   <div class="wrap">
