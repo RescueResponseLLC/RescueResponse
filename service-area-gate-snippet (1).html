@@ -1,0 +1,37 @@
+<!--
+  SERVICE AREA GATE — paste this block into each service page, right above
+  the "Subscribe Now" Payment Link button. Only reveals the payment button
+  once the visitor confirms they're in a serviceable county — stops most
+  out-of-area signups before money ever changes hands, instead of dealing
+  with it after via refunds.
+-->
+<div class="area-gate" style="max-width:420px; margin-bottom:20px;">
+  <label for="area-select">Confirm your county to continue</label>
+  <select id="area-select" onchange="checkServiceArea()">
+    <option value="">Select your county...</option>
+    <option value="yes">Ada County</option>
+    <option value="yes">Canyon County</option>
+    <option value="yes">Gem County</option>
+    <option value="yes">Boise County</option>
+    <option value="yes">Payette County</option>
+    <option value="no">Somewhere else in Idaho</option>
+    <option value="no">Outside Idaho</option>
+  </select>
+
+  <div id="area-yes" style="display:none; margin-top:14px;">
+    <a href="PASTE_YOUR_STRIPE_PAYMENT_LINK_HERE" class="btn btn-primary" target="_blank" rel="noopener">Subscribe Now</a>
+  </div>
+
+  <div id="area-no" class="note-banner" style="display:none; margin-top:14px;">
+    <p>We're currently serving Ada, Canyon, Gem, Boise, and Payette counties only. Reach out below and we'll let you know if we expand to your area.</p>
+  </div>
+</div>
+
+<script>
+  function checkServiceArea() {
+    var select = document.getElementById('area-select');
+    var value = select.options[select.selectedIndex].value;
+    document.getElementById('area-yes').style.display = value === 'yes' ? 'block' : 'none';
+    document.getElementById('area-no').style.display = value === 'no' ? 'block' : 'none';
+  }
+</script>
