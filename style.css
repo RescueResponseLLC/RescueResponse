@@ -91,38 +91,29 @@ nav .wrap{display:flex; align-items:center; justify-content:space-between; paddi
   position:relative; min-height:82vh; display:flex; align-items:center;
   padding:80px 0 60px;
 }
-.rings{
+.rings-svg{
   position:absolute; right:20px; top:50%; transform:translateY(-50%);
   width:640px; height:640px; z-index:0;
 }
 .ring{
-  position:absolute; border:1px solid var(--accent); border-radius:50%;
-  top:50%; left:50%; transform:translate(-50%,-50%);
-  opacity:0.25;
+  fill:none; stroke:var(--accent); stroke-width:1; opacity:0.25;
   animation:pulse 6s ease-in-out infinite;
 }
-.ring.r1{width:120px; height:120px; animation-delay:0s;}
-.ring.r2{width:280px; height:280px; animation-delay:0.6s;}
-.ring.r3{width:440px; height:440px; animation-delay:1.2s;}
-.ring.r4{width:600px; height:600px; animation-delay:1.8s;}
+.ring.r1{animation-delay:0s;}
+.ring.r2{animation-delay:0.6s;}
+.ring.r3{animation-delay:1.2s;}
+.ring.r4{animation-delay:1.8s;}
 @keyframes pulse{
   0%,100%{opacity:0.14;}
   50%{opacity:0.38;}
 }
-.pin{
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:34px; height:34px;
-}
-.pin::before, .pin::after{
-  content:''; position:absolute; background:var(--accent); border-radius:1px;
-}
-.pin::before{ width:34px; height:11px; top:50%; left:0; transform:translateY(-50%); }
-.pin::after{ width:11px; height:34px; left:50%; top:0; transform:translateX(-50%); }
 .pin-glow{
-  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-  width:60px; height:60px; border-radius:50%;
-  box-shadow:0 0 0 10px rgba(232,98,46,0.08);
+  fill:rgba(232,98,46,0.08); stroke:rgba(232,98,46,0.08); stroke-width:10;
 }
+.pin-bar{
+  fill:var(--accent);
+}
+
 
 .hero-content{position:relative; z-index:1; max-width:640px;}
 .hero-content::before{
