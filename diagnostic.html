@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head><title>RescueRadius Backend Diagnostic</title></head>
+<body style="font-family:monospace; padding:40px; font-size:16px; line-height:1.8;">
+
+<h2>Backend Connection Test</h2>
+<div id="result" style="padding:20px; background:#eee; white-space:pre-wrap;">Testing...</div>
+
+<script>
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw28zShgemHjzzF1D5M6kY6jn52PE99qvKyCKkOEW6KveZb1Sz3t4Jl6zplQ2pcS-4r/exec';
+const result = document.getElementById('result');
+
+function log(msg) {
+  result.textContent += '\n' + msg;
+}
+
+result.textContent = 'Step 1: Attempting JSONP script-tag load (same method Ops uses)...';
+
+const cb = 'diagTest_' + Date.now();
+const timeout = setTimeout(() => {
+  log('❌ TIMED OUT after 8 seconds. The script tag never called back.');
+  log('This means the request was blocked before it ever got a response —');
+  log('most likely a browser extension, security software, or network-level block');
+  log('specifically on script-tag loading from script.google.com.');
+}, 8000);
+
+window[cb] = function(data) {
+  clearTimeout(timeout);
+  log('✅ SUCCESS — JSONP callback fired.');
+  log('Data received: ' + JSON.stringify(data).substring(0, 200));
+};
+
+const script = document.createElement('script');
+script.src = BACKEND_URL + '?action=list&callback=' + cb + '&password=RescueRadius2026!';
+script.onerror = function(err) {
+  clearTimeout(timeout);
+  log('❌ SCRIPT LOAD ERROR — the script tag itself failed to load.');
+  log('This confirms something is actively blocking this specific request');
+  log('(extension, antivirus, network policy) — not a code or deployment issue.');
+};
+document.body.appendChild(script);
+
+// Also try a plain fetch, for comparison
+log('\nStep 2: Attempting plain fetch() to the same URL...');
+fetch(BACKEND_URL + '?action=list&password=RescueRadius2026!', { mode: 'no-cors' })
+  .then(() => log('✅ fetch() completed without throwing (no-cors mode can\'t read the response, but this confirms the network request itself succeeded).'))
+  .catch((err) => log('❌ fetch() threw an error: ' + err.message));
+</script>
+
+</body>
+</html>
