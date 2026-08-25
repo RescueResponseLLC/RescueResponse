@@ -177,6 +177,7 @@
       <button class="nav-btn" data-view="reports">Monthly Reports</button>
       <button class="nav-btn" data-view="analytics">Analytics</button>
       <button class="nav-btn" data-view="routes">Route Planning</button>
+      <button class="nav-btn" onclick="showLoginScreen()" style="margin-left:auto; color:var(--text-dim);">Log Out</button>
     </nav>
   </div>
 </header>
@@ -459,13 +460,40 @@ document.getElementById('login-password').addEventListener('keydown', function(e
   if(e.key === 'Enter') attemptLogin();
 });
 
-// On load, try any previously-saved password automatically
-(function(){
+// On load, try any previously-saved password — but actually verify it
+// against the backend first, instead of blindly trusting whatever's in
+// localStorage. This is what was causing the "logged in but showing
+// nothing" state: a stale/incorrect saved password used to unlock the
+// app without ever confirming it still worked.
+(async function(){
   const saved = localStorage.getItem('rr-admin-pw');
-  if(saved){
-    ADMIN_PW = saved;
-    unlockApp();
+  if(!saved) return;
+
+  const testResult = await new Promise((resolve) => {
+    const cb = 'rrAutoLoginCheck_' + Date.now();
+    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 8000);
+    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
+    window[cb] = function(data){ cleanup(); resolve(data); };
+    const script = document.createElement('script');
+    script.id = cb;
+    script.src = BACKEND_URL + '?action=list&callback=' + cb + '&password=' + encodeURIComponent(saved);
+    script.onerror = function(){ cleanup(); resolve(null); };
+    document.body.appendChild(script);
+  });
+
+  if(testResult && testResult.error === 'unauthorized'){
+    // Saved password is stale/wrong — clear it and force back to a real login
+    localStorage.removeItem('rr-admin-pw');
+    ADMIN_PW = '';
+    return;
   }
+  if(testResult === null){
+    // Couldn't reach the backend at all — don't unlock on a guess, let them log in manually
+    return;
+  }
+
+  ADMIN_PW = saved;
+  unlockApp();
 })();
 
 async function loadKits(){
