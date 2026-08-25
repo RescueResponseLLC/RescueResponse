@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  var BACKEND_URL = 'https://script.google.com/macros/s/AKfycby1i2wTxPTlGywpfrG4aZApeOQdy67Hyag8LSeX30sbywQ5loI2d3mdE6K452EKs-ZUfA/exec';
+  var BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw28zShgemHjzzF1D5M6kY6jn52PE99qvKyCKkOEW6KveZb1Sz3t4Jl6zplQ2pcS-4r/exec';
 
   document.querySelectorAll('.contact-form').forEach(function (form) {
     form.addEventListener('submit', function (e) {
