@@ -428,17 +428,13 @@ async function attemptLogin(){
   if(!pw) return;
   // Validate by actually asking the backend — the real password lives only
   // in the Apps Script, never in this page's code.
-  const testResult = await new Promise((resolve) => {
-    const cb = 'rrLoginCheck_' + Date.now();
-    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 8000);
-    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
-    window[cb] = function(data){ cleanup(); resolve(data); };
-    const script = document.createElement('script');
-    script.id = cb;
-    script.src = BACKEND_URL + '?action=list&callback=' + cb + '&password=' + encodeURIComponent(pw);
-    script.onerror = function(){ cleanup(); resolve(null); };
-    document.body.appendChild(script);
-  });
+  let testResult;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(pw));
+    testResult = await res.json();
+  }catch(e){
+    testResult = null;
+  }
 
   if(testResult && testResult.error === 'unauthorized'){
     document.getElementById('login-error').textContent = 'Incorrect password — try again.';
@@ -462,33 +458,25 @@ document.getElementById('login-password').addEventListener('keydown', function(e
 
 // On load, try any previously-saved password — but actually verify it
 // against the backend first, instead of blindly trusting whatever's in
-// localStorage. This is what was causing the "logged in but showing
-// nothing" state: a stale/incorrect saved password used to unlock the
-// app without ever confirming it still worked.
+// localStorage.
 (async function(){
   const saved = localStorage.getItem('rr-admin-pw');
   if(!saved) return;
 
-  const testResult = await new Promise((resolve) => {
-    const cb = 'rrAutoLoginCheck_' + Date.now();
-    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 8000);
-    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
-    window[cb] = function(data){ cleanup(); resolve(data); };
-    const script = document.createElement('script');
-    script.id = cb;
-    script.src = BACKEND_URL + '?action=list&callback=' + cb + '&password=' + encodeURIComponent(saved);
-    script.onerror = function(){ cleanup(); resolve(null); };
-    document.body.appendChild(script);
-  });
+  let testResult;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(saved));
+    testResult = await res.json();
+  }catch(e){
+    testResult = null;
+  }
 
   if(testResult && testResult.error === 'unauthorized'){
-    // Saved password is stale/wrong — clear it and force back to a real login
     localStorage.removeItem('rr-admin-pw');
     ADMIN_PW = '';
     return;
   }
   if(testResult === null){
-    // Couldn't reach the backend at all — don't unlock on a guess, let them log in manually
     return;
   }
 
@@ -497,48 +485,20 @@ document.getElementById('login-password').addEventListener('keydown', function(e
 })();
 
 async function loadKits(){
-  return new Promise((resolve) => {
-    const callbackName = 'rrCallback_' + Date.now();
-    const timeout = setTimeout(() => {
-      console.error('Backend load timed out');
-      kits = [];
-      render();
-      cleanup();
-      resolve();
-    }, 10000);
-
-    function cleanup(){
-      delete window[callbackName];
-      const tag = document.getElementById(callbackName);
-      if(tag) tag.remove();
-      clearTimeout(timeout);
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(ADMIN_PW));
+    const data = await res.json();
+    if(data && data.error === 'unauthorized'){
+      showLoginScreen('Session expired — please log in again.');
+      return;
     }
-
-    window[callbackName] = function(data){
-      if(data && data.error === 'unauthorized'){
-        cleanup();
-        showLoginScreen('Session expired — please log in again.');
-        resolve();
-        return;
-      }
-      kits = Array.isArray(data) ? data : [];
-      render();
-      cleanup();
-      resolve();
-    };
-
-    const script = document.createElement('script');
-    script.id = callbackName;
-    script.src = BACKEND_URL + '?action=list&callback=' + callbackName + '&password=' + encodeURIComponent(ADMIN_PW);
-    script.onerror = function(){
-      console.error('Backend load error — check the deployment URL and access settings.');
-      kits = [];
-      render();
-      cleanup();
-      resolve();
-    };
-    document.body.appendChild(script);
-  });
+    kits = Array.isArray(data) ? data : [];
+    render();
+  }catch(e){
+    console.error('Backend load error', e);
+    kits = [];
+    render();
+  }
 }
 
 // Fire-and-forget style write: POST in no-cors mode (avoids CORS issues since
@@ -775,17 +735,13 @@ function buildRoutes(){
 async function loadAnalytics(){
   const wrap = document.getElementById('analytics-stat-row');
   wrap.innerHTML = '<p class="sub">Loading...</p>';
-  const data = await new Promise((resolve) => {
-    const cb = 'rrAnalytics_' + Date.now();
-    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 10000);
-    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
-    window[cb] = function(result){ cleanup(); resolve(result); };
-    const script = document.createElement('script');
-    script.id = cb;
-    script.src = BACKEND_URL + '?action=analytics&callback=' + cb + '&password=' + encodeURIComponent(ADMIN_PW);
-    script.onerror = function(){ cleanup(); resolve(null); };
-    document.body.appendChild(script);
-  });
+  let data;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=analytics&password=' + encodeURIComponent(ADMIN_PW));
+    data = await res.json();
+  }catch(e){
+    data = null;
+  }
 
   if(!data || data.error){
     wrap.innerHTML = '<p class="sub">Could not load analytics right now.</p>';
