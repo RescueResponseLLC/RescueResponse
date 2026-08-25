@@ -1054,6 +1054,15 @@ async function saveKit(){
   await postToBackend({ action: 'save', kit: kitData, password: ADMIN_PW });
   if(saveBtn){ saveBtn.disabled = false; }
   await loadKits();
+
+  // Verify the kit actually landed in the refreshed list — no-cors mode can't
+  // read the real response, so this is the only reliable way to confirm a
+  // save actually worked instead of silently assuming it did.
+  const savedOk = kits.some(k => k.id === kitData.id);
+  if(!savedOk){
+    alert('This kit may not have saved. Check that your admin password is correct and that the backend script is deployed with the latest version, then try again. Your entered info is still in this form.');
+    return; // leave the modal open so nothing is lost
+  }
   closeKitModal();
 }
 
