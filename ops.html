@@ -858,7 +858,7 @@ const STANDARD_CONTENTS = {
   'Fire Extinguisher': [{name:'Fire Extinguisher'}],
   'Outdoor AED': [{name:'AED'}, {name:'CPR Mask'}],
   'Mass Casualty Kit': [
-    {name:'Tourniquet'}, {name:'Chest Seal'}, {name:'CPR Mask'}, {name:'Emergency Blanket'}, {name:'AED'}
+    {name:'Tourniquet'}, {name:'Chest Seal'}, {name:'CPR Mask'}, {name:'Emergency Blanket'}, {name:'Emergency Litter'}, {name:'AED'}
   ],
   'Custom Kit': []
 };
@@ -991,6 +991,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function saveKit(){
+  const saveBtn = document.querySelector('#kit-modal .btn-primary');
+  // Lock the button immediately, before anything else — this is what
+  // prevents a second click from starting a second save while the first
+  // is still in flight, which was creating duplicate kits.
+  if(saveBtn && saveBtn.disabled){
+    return; // a save is already in progress, ignore this click entirely
+  }
+  if(saveBtn){ saveBtn.disabled = true; }
+  const originalBtnText = saveBtn ? saveBtn.textContent : '';
+
   const type = document.getElementById('kit-type').value;
   let code = document.getElementById('kit-code').value.trim();
   if(!code) code = genId(type);
@@ -1002,13 +1012,11 @@ async function saveKit(){
   })).filter(c=>c.name);
 
   const address = document.getElementById('kit-address').value.trim();
-  const saveBtn = document.querySelector('#kit-modal .btn-primary');
-  const originalBtnText = saveBtn ? saveBtn.textContent : '';
   let coords;
   if(selectedAddressCoords && address === selectedAddressLabel){
     coords = selectedAddressCoords; // picked from the dropdown — already have exact coordinates
   } else {
-    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Locating address...'; }
+    if(saveBtn){ saveBtn.textContent = 'Locating address...'; }
     coords = await geocodeAddress(address);
     if(saveBtn){ saveBtn.textContent = originalBtnText; }
   }
@@ -1031,22 +1039,21 @@ async function saveKit(){
     kitData.id = currentEditId;
     kitData.serviceLog = k.serviceLog || [];
   }else{
-    kitData.id = 'k' + Date.now();
+    kitData.id = 'k' + Date.now() + Math.floor(Math.random() * 100000);
     kitData.serviceLog = window._pendingLog || [];
     window._pendingLog = [];
   }
   await postToBackend({ action: 'save', kit: kitData, password: ADMIN_PW });
-  if(saveBtn){ saveBtn.disabled = false; }
   await loadKits();
 
-  // Verify the kit actually landed in the refreshed list — no-cors mode can't
-  // read the real response, so this is the only reliable way to confirm a
-  // save actually worked instead of silently assuming it did.
+  // Verify the kit actually landed in the refreshed list
   const savedOk = kits.some(k => k.id === kitData.id);
   if(!savedOk){
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = originalBtnText; }
     alert('This kit may not have saved. Check that your admin password is correct and that the backend script is deployed with the latest version, then try again. Your entered info is still in this form.');
     return; // leave the modal open so nothing is lost
   }
+  if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = originalBtnText; }
   closeKitModal();
 }
 
