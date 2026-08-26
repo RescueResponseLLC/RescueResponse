@@ -405,7 +405,7 @@ function closeScanner(){
   }
 }
 
-const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbz8Wc4Kb736qB8ykJfMM3H4iiWd0q4kSQtjGbOQvG1-5wR-MSRA-rOVTgthWzzjFucQbA/exec';
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw28zShgemHjzzF1D5M6kY6jn52PE99qvKyCKkOEW6KveZb1Sz3t4Jl6zplQ2pcS-4r/exec';
 
 function showLoginScreen(errorMsg){
   document.getElementById('app-content').style.display = 'none';
@@ -428,17 +428,13 @@ async function attemptLogin(){
   if(!pw) return;
   // Validate by actually asking the backend — the real password lives only
   // in the Apps Script, never in this page's code.
-  const testResult = await new Promise((resolve) => {
-    const cb = 'rrLoginCheck_' + Date.now();
-    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 8000);
-    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
-    window[cb] = function(data){ cleanup(); resolve(data); };
-    const script = document.createElement('script');
-    script.id = cb;
-    script.src = BACKEND_URL + '?action=list&callback=' + cb + '&password=' + encodeURIComponent(pw);
-    script.onerror = function(){ cleanup(); resolve(null); };
-    document.body.appendChild(script);
-  });
+  let testResult;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(pw));
+    testResult = await res.json();
+  }catch(e){
+    testResult = null;
+  }
 
   if(testResult && testResult.error === 'unauthorized'){
     document.getElementById('login-error').textContent = 'Incorrect password — try again.';
@@ -462,33 +458,25 @@ document.getElementById('login-password').addEventListener('keydown', function(e
 
 // On load, try any previously-saved password — but actually verify it
 // against the backend first, instead of blindly trusting whatever's in
-// localStorage. This is what was causing the "logged in but showing
-// nothing" state: a stale/incorrect saved password used to unlock the
-// app without ever confirming it still worked.
+// localStorage.
 (async function(){
   const saved = localStorage.getItem('rr-admin-pw');
   if(!saved) return;
 
-  const testResult = await new Promise((resolve) => {
-    const cb = 'rrAutoLoginCheck_' + Date.now();
-    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 8000);
-    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
-    window[cb] = function(data){ cleanup(); resolve(data); };
-    const script = document.createElement('script');
-    script.id = cb;
-    script.src = BACKEND_URL + '?action=list&callback=' + cb + '&password=' + encodeURIComponent(saved);
-    script.onerror = function(){ cleanup(); resolve(null); };
-    document.body.appendChild(script);
-  });
+  let testResult;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(saved));
+    testResult = await res.json();
+  }catch(e){
+    testResult = null;
+  }
 
   if(testResult && testResult.error === 'unauthorized'){
-    // Saved password is stale/wrong — clear it and force back to a real login
     localStorage.removeItem('rr-admin-pw');
     ADMIN_PW = '';
     return;
   }
   if(testResult === null){
-    // Couldn't reach the backend at all — don't unlock on a guess, let them log in manually
     return;
   }
 
@@ -497,48 +485,20 @@ document.getElementById('login-password').addEventListener('keydown', function(e
 })();
 
 async function loadKits(){
-  return new Promise((resolve) => {
-    const callbackName = 'rrCallback_' + Date.now();
-    const timeout = setTimeout(() => {
-      console.error('Backend load timed out');
-      kits = [];
-      render();
-      cleanup();
-      resolve();
-    }, 10000);
-
-    function cleanup(){
-      delete window[callbackName];
-      const tag = document.getElementById(callbackName);
-      if(tag) tag.remove();
-      clearTimeout(timeout);
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(ADMIN_PW));
+    const data = await res.json();
+    if(data && data.error === 'unauthorized'){
+      showLoginScreen('Session expired — please log in again.');
+      return;
     }
-
-    window[callbackName] = function(data){
-      if(data && data.error === 'unauthorized'){
-        cleanup();
-        showLoginScreen('Session expired — please log in again.');
-        resolve();
-        return;
-      }
-      kits = Array.isArray(data) ? data : [];
-      render();
-      cleanup();
-      resolve();
-    };
-
-    const script = document.createElement('script');
-    script.id = callbackName;
-    script.src = BACKEND_URL + '?action=list&callback=' + callbackName + '&password=' + encodeURIComponent(ADMIN_PW);
-    script.onerror = function(){
-      console.error('Backend load error — check the deployment URL and access settings.');
-      kits = [];
-      render();
-      cleanup();
-      resolve();
-    };
-    document.body.appendChild(script);
-  });
+    kits = Array.isArray(data) ? data : [];
+    render();
+  }catch(e){
+    console.error('Backend load error', e);
+    kits = [];
+    render();
+  }
 }
 
 // Fire-and-forget style write: POST in no-cors mode (avoids CORS issues since
@@ -546,16 +506,16 @@ async function loadKits(){
 // afterward so the UI reflects the real, current state.
 async function postToBackend(payload){
   try{
-    await fetch(BACKEND_URL, {
+    const res = await fetch(BACKEND_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
-    return true;
+    const data = await res.json();
+    return data;
   }catch(e){
     console.error('Backend write error', e);
-    return false;
+    return { ok: false, error: 'network', detail: e.message };
   }
 }
 
@@ -775,17 +735,13 @@ function buildRoutes(){
 async function loadAnalytics(){
   const wrap = document.getElementById('analytics-stat-row');
   wrap.innerHTML = '<p class="sub">Loading...</p>';
-  const data = await new Promise((resolve) => {
-    const cb = 'rrAnalytics_' + Date.now();
-    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 10000);
-    function cleanup(){ delete window[cb]; const t=document.getElementById(cb); if(t) t.remove(); clearTimeout(timeout); }
-    window[cb] = function(result){ cleanup(); resolve(result); };
-    const script = document.createElement('script');
-    script.id = cb;
-    script.src = BACKEND_URL + '?action=analytics&callback=' + cb + '&password=' + encodeURIComponent(ADMIN_PW);
-    script.onerror = function(){ cleanup(); resolve(null); };
-    document.body.appendChild(script);
-  });
+  let data;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=analytics&password=' + encodeURIComponent(ADMIN_PW));
+    data = await res.json();
+  }catch(e){
+    data = null;
+  }
 
   if(!data || data.error){
     wrap.innerHTML = '<p class="sub">Could not load analytics right now.</p>';
@@ -1035,6 +991,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function saveKit(){
+  const saveBtn = document.querySelector('#kit-modal .btn-primary');
+  // Lock the button immediately, before anything else — this is what
+  // prevents a second click from starting a second save while the first
+  // is still in flight, which was creating duplicate kits.
+  if(saveBtn && saveBtn.disabled){
+    return; // a save is already in progress, ignore this click entirely
+  }
+  if(saveBtn){ saveBtn.disabled = true; }
+  const originalBtnText = saveBtn ? saveBtn.textContent : '';
+
   const type = document.getElementById('kit-type').value;
   let code = document.getElementById('kit-code').value.trim();
   if(!code) code = genId(type);
@@ -1046,13 +1012,11 @@ async function saveKit(){
   })).filter(c=>c.name);
 
   const address = document.getElementById('kit-address').value.trim();
-  const saveBtn = document.querySelector('#kit-modal .btn-primary');
-  const originalBtnText = saveBtn ? saveBtn.textContent : '';
   let coords;
   if(selectedAddressCoords && address === selectedAddressLabel){
     coords = selectedAddressCoords; // picked from the dropdown — already have exact coordinates
   } else {
-    if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Locating address...'; }
+    if(saveBtn){ saveBtn.textContent = 'Locating address...'; }
     coords = await geocodeAddress(address);
     if(saveBtn){ saveBtn.textContent = originalBtnText; }
   }
@@ -1075,22 +1039,21 @@ async function saveKit(){
     kitData.id = currentEditId;
     kitData.serviceLog = k.serviceLog || [];
   }else{
-    kitData.id = 'k' + Date.now();
+    kitData.id = 'k' + Date.now() + Math.floor(Math.random() * 100000);
     kitData.serviceLog = window._pendingLog || [];
     window._pendingLog = [];
   }
   await postToBackend({ action: 'save', kit: kitData, password: ADMIN_PW });
-  if(saveBtn){ saveBtn.disabled = false; }
   await loadKits();
 
-  // Verify the kit actually landed in the refreshed list — no-cors mode can't
-  // read the real response, so this is the only reliable way to confirm a
-  // save actually worked instead of silently assuming it did.
+  // Verify the kit actually landed in the refreshed list
   const savedOk = kits.some(k => k.id === kitData.id);
   if(!savedOk){
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = originalBtnText; }
     alert('This kit may not have saved. Check that your admin password is correct and that the backend script is deployed with the latest version, then try again. Your entered info is still in this form.');
     return; // leave the modal open so nothing is lost
   }
+  if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = originalBtnText; }
   closeKitModal();
 }
 
@@ -1256,11 +1219,23 @@ async function logInspectionNow(){
 }
 
 async function sendOneReportNow(i){
-  const group = window._reportGroups[i];
+  const group = window._reportGroups ? window._reportGroups[i] : null;
+  if(!group){
+    alert('Could not find that client — try switching away from this tab and back, then try again.');
+    return;
+  }
   if(!group.email){ alert('This client has no email on file.'); return; }
   if(!confirm(`Send this month's report to ${group.client} (${group.email}) only?`)) return;
-  await postToBackend({ action: 'sendOneReport', password: ADMIN_PW, clientEmail: group.email });
-  alert(`Sent to ${group.client}.`);
+
+  const result = await postToBackend({ action: 'sendOneReport', password: ADMIN_PW, clientEmail: group.email });
+
+  if(result && result.ok){
+    alert(`Sent to ${group.client}.`);
+  } else if(result && result.error === 'unauthorized'){
+    alert('Your session may have expired. Please log out and back in, then try again.');
+  } else {
+    alert(`Something went wrong sending this report: ${result && result.error ? result.error : 'unknown error'}. Nothing was sent.`);
+  }
 }
 </script>
 
