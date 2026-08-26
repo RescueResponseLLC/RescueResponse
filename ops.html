@@ -506,16 +506,16 @@ async function loadKits(){
 // afterward so the UI reflects the real, current state.
 async function postToBackend(payload){
   try{
-    await fetch(BACKEND_URL, {
+    const res = await fetch(BACKEND_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
-    return true;
+    const data = await res.json();
+    return data;
   }catch(e){
     console.error('Backend write error', e);
-    return false;
+    return { ok: false, error: 'network', detail: e.message };
   }
 }
 
@@ -1212,11 +1212,23 @@ async function logInspectionNow(){
 }
 
 async function sendOneReportNow(i){
-  const group = window._reportGroups[i];
+  const group = window._reportGroups ? window._reportGroups[i] : null;
+  if(!group){
+    alert('Could not find that client — try switching away from this tab and back, then try again.');
+    return;
+  }
   if(!group.email){ alert('This client has no email on file.'); return; }
   if(!confirm(`Send this month's report to ${group.client} (${group.email}) only?`)) return;
-  await postToBackend({ action: 'sendOneReport', password: ADMIN_PW, clientEmail: group.email });
-  alert(`Sent to ${group.client}.`);
+
+  const result = await postToBackend({ action: 'sendOneReport', password: ADMIN_PW, clientEmail: group.email });
+
+  if(result && result.ok){
+    alert(`Sent to ${group.client}.`);
+  } else if(result && result.error === 'unauthorized'){
+    alert('Your session may have expired. Please log out and back in, then try again.');
+  } else {
+    alert(`Something went wrong sending this report: ${result && result.error ? result.error : 'unknown error'}. Nothing was sent.`);
+  }
 }
 </script>
 
