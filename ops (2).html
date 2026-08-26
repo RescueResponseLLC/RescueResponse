@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RescueRadius Ops — Kit Tracking</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root{
+    --bg:#0E1620; --bg-alt:#16212B; --bg-card:#1B2730;
+    --accent:#E8622E; --accent-dim:#B5502A; --sage:#7C9885;
+    --text:#F2F5F5; --text-dim:#A9B4B8; --line:#263441;
+    --ok:#5FA876; --warn:#D9A441; --bad:#D9534F;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:var(--font-body); line-height:1.5;}
+  .wrap{max-width:1100px; margin:0 auto; padding:0 20px;}
+
+  header{border-bottom:1px solid var(--line); padding:18px 0; position:sticky; top:0; background:rgba(14,22,32,0.95); backdrop-filter:blur(8px); z-index:10;}
+  header .wrap{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px;}
+  .brand .mark{width:26px; height:26px;}
+  .brand .mark circle{fill:none; stroke:var(--sage); opacity:0.5;}
+  .brand .mark circle.outer{stroke:var(--accent-dim);}
+  .brand .mark rect{fill:var(--accent);}
+  .brand .accent-word{color:var(--accent);}
+  nav{display:flex; gap:4px; flex-wrap:wrap;}
+  nav button{
+    background:none; border:1px solid var(--line); color:var(--text-dim); padding:8px 14px;
+    font-family:var(--font-body); font-size:13.5px; cursor:pointer; border-radius:3px;
+  }
+  nav button.active{background:var(--accent); color:#0E1620; border-color:var(--accent); font-weight:600;}
+  nav button:hover:not(.active){border-color:var(--sage); color:var(--text);}
+
+  main{padding:32px 0 80px;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  h1{font-size:22px; margin-bottom:6px;}
+  .sub{color:var(--text-dim); font-size:14px; margin-bottom:28px;}
+
+  /* Dashboard */
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:2px; background:var(--line); border:1px solid var(--line); margin-bottom:32px;}
+  @media(max-width:700px){.stat-row{grid-template-columns:1fr 1fr;}}
+  .stat{background:var(--bg-card); padding:22px 20px;}
+  .stat .num{font-size:32px; font-weight:700;}
+  .stat .label{font-size:12px; color:var(--text-dim); font-family:var(--font-mono); text-transform:uppercase; letter-spacing:0.05em; margin-top:4px;}
+  .stat.ok .num{color:var(--ok);} .stat.warn .num{color:var(--warn);} .stat.bad .num{color:var(--bad);}
+
+  .section-label{font-family:var(--font-mono); font-size:12px; color:var(--sage); text-transform:uppercase; letter-spacing:0.08em; margin:32px 0 12px;}
+
+  /* Kit list */
+  .kit-card{background:var(--bg-card); border:1px solid var(--line); border-left:3px solid var(--line); margin-bottom:10px; padding:16px 18px; cursor:pointer;}
+  .kit-card.ok{border-left-color:var(--ok);}
+  .kit-card.warn{border-left-color:var(--warn);}
+  .kit-card.bad{border-left-color:var(--bad);}
+  .kit-card .top-row{display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  .kit-card .id{font-family:var(--font-mono); font-size:13px; color:var(--accent);}
+  .kit-card .name{font-weight:600; font-size:15px; margin-top:2px;}
+  .kit-card .meta{font-size:13px; color:var(--text-dim); margin-top:4px;}
+  .dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:6px;}
+  .dot.ok{background:var(--ok);} .dot.warn{background:var(--warn);} .dot.bad{background:var(--bad);}
+  .status-text{font-size:12.5px; font-family:var(--font-mono);}
+
+  /* Buttons/forms */
+  .btn{display:inline-block; padding:10px 18px; font-weight:600; font-size:14px; border-radius:3px; border:none; cursor:pointer; font-family:var(--font-body);}
+  .btn-primary{background:var(--accent); color:#0E1620;}
+  .btn-primary:hover{background:#f1743f;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--sage);}
+  .btn-small{padding:6px 12px; font-size:12.5px;}
+  label{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--sage); display:block; margin-bottom:4px;}
+  input, select, textarea{
+    width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text);
+    padding:9px 10px; font-family:var(--font-body); font-size:14px; border-radius:3px; margin-bottom:14px;
+  }
+  input[type="date"]{ color-scheme: light; }
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent);}
+  .form-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media(max-width:600px){.form-row{grid-template-columns:1fr;}}
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:50;
+    align-items:flex-start; justify-content:center; padding:40px 16px; overflow-y:auto;
+  }
+  .modal-overlay.open{display:flex;}
+  #scanner-modal{ z-index:200; }
+  .modal{background:var(--bg-card); border:1px solid var(--line); border-radius:4px; padding:28px; max-width:560px; width:100%;}
+  .modal h2{font-size:18px; margin-bottom:18px;}
+  .modal .close-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+  .modal .close-row h2{margin:0;}
+  .x-btn{background:none; border:none; color:var(--text-dim); font-size:20px; cursor:pointer;}
+
+  .component-row{
+    display:flex; flex-direction:column; gap:8px;
+    margin-bottom:12px; padding:12px; background:var(--bg); border:1px solid var(--line); border-radius:4px;
+  }
+  .component-row .comp-name{width:100%; margin-bottom:0; box-sizing:border-box;}
+  .component-row .row-controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .component-row .comp-expiry{width:auto; flex:1 1 140px; margin-bottom:0; box-sizing:border-box;}
+  .component-row .comp-restock{width:auto !important; flex:0 0 auto; margin:0;}
+  .component-row .restock-label{
+    flex:0 0 auto; white-space:nowrap; display:flex; align-items:center; gap:4px;
+    font-family:var(--font-body); font-size:12px; text-transform:none; letter-spacing:normal; color:var(--text-dim);
+    cursor:pointer;
+  }
+  .component-row .remove-x{flex:0 0 auto; margin-left:auto;}
+  .component-row input{margin-bottom:0;}
+  .remove-x{background:none; border:none; color:var(--bad); cursor:pointer; font-size:16px; padding:4px 8px;}
+
+  .log-entry{border-top:1px solid var(--line); padding:10px 0; font-size:13.5px;}
+  .log-entry .date{font-family:var(--font-mono); color:var(--sage); font-size:12px;}
+
+  #map{height:440px; border-radius:4px; border:1px solid var(--line); margin-bottom:20px;}
+
+  .empty-state{text-align:center; padding:60px 20px; color:var(--text-dim);}
+  .empty-state h3{color:var(--text); margin-bottom:8px;}
+
+  .report-form{max-width:480px;}
+  .report-success{background:var(--bg-card); border:1px solid var(--ok); border-radius:4px; padding:24px; text-align:center; display:none;}
+
+  .loading{color:var(--text-dim); font-family:var(--font-mono); font-size:13px; padding:20px 0;}
+
+  /* LOGIN GATE */
+  #login-screen{
+    position:fixed; inset:0; background:var(--bg); z-index:100;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .login-box{background:var(--bg-card); border:1px solid var(--line); border-radius:4px; padding:36px; max-width:360px; width:100%; text-align:center;}
+  .login-box .mark{width:40px; height:40px; margin:0 auto 16px;}
+  .login-box h1{font-size:18px; margin-bottom:6px;}
+  .login-box p{color:var(--text-dim); font-size:13.5px; margin-bottom:20px;}
+  .login-box input{margin-bottom:12px;}
+  .login-error{color:var(--bad); font-size:13px; margin-top:10px; display:none;}
+  #app-content{display:none;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+      <circle class="outer" cx="15" cy="15" r="14"/>
+      <circle cx="15" cy="15" r="9.5"/>
+      <rect x="12.8" y="8" width="4.4" height="14" rx="1"/>
+      <rect x="8" y="12.8" width="14" height="4.4" rx="1"/>
+    </svg>
+    <h1>RescueRadius Ops</h1>
+    <p>Enter the admin password to continue.</p>
+    <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+    <button class="btn btn-primary" style="width:100%;" onclick="attemptLogin()">Enter</button>
+    <p class="login-error" id="login-error">Incorrect password — try again.</p>
+  </div>
+</div>
+
+<div id="app-content">
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+        <circle class="outer" cx="15" cy="15" r="14"/>
+        <circle cx="15" cy="15" r="9.5"/>
+        <rect x="12.8" y="8" width="4.4" height="14" rx="1"/>
+        <rect x="8" y="12.8" width="14" height="4.4" rx="1"/>
+      </svg>
+      <span class="wordmark">Rescue<span class="accent-word">Radius</span></span> Ops
+    </div>
+    <nav>
+      <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+      <button class="nav-btn" data-view="inventory">Inventory</button>
+      <button class="nav-btn" data-view="map">Map</button>
+      <button class="nav-btn" data-view="reports">Monthly Reports</button>
+      <button class="nav-btn" data-view="analytics">Analytics</button>
+      <button class="nav-btn" data-view="routes">Route Planning</button>
+      <button class="nav-btn" onclick="showLoginScreen()" style="margin-left:auto; color:var(--text-dim);">Log Out</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <h1>Overview</h1>
+    <p class="sub">Every placement, at a glance — expirations, flags, and service status.</p>
+    <div class="stat-row" id="stat-row"></div>
+    <div class="section-label">Needs Attention</div>
+    <div id="attention-list"></div>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="view" id="view-inventory">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:6px;">
+      <div>
+        <h1>Inventory</h1>
+        <p class="sub" style="margin-bottom:0;">Every kit you've placed — tap one to view or edit.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openKitModal()">+ Add Kit</button>
+    </div>
+    <div id="inventory-list" style="margin-top:24px;"></div>
+  </div>
+
+  <!-- MAP -->
+  <div class="view" id="view-map">
+    <h1>Placement Map</h1>
+    <p class="sub">Kits with saved coordinates. Green = current, amber = due soon, red = flagged/used.</p>
+    <div id="map"></div>
+    <p class="sub" style="margin-top:-8px;">Kits plot here automatically once they have an address saved — no coordinates to enter yourself.</p>
+  </div>
+
+  <!-- MONTHLY REPORTS -->
+  <div class="view" id="view-reports">
+    <h1>Monthly Reports</h1>
+    <p class="sub">Auto-compiled from every kit and service log entry on file. These send automatically to every client with an email on file, on the 1st of each month at 8am — no action needed from you.</p>
+
+    <div class="note-banner" style="margin-bottom:24px;">
+      <h3>Automatic sending is live</h3>
+      <p>This runs on a real schedule in the background, even when this page isn't open. Use "Send All Now" below to trigger this month's batch early or to test that it's working.</p>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <div class="section-label" style="margin:0;">This Month's Reports</div>
+      <button class="btn btn-primary btn-small" id="send-all-btn" onclick="sendAllReportsNow()">Send All Now</button>
+    </div>
+    <div id="reports-list"></div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="view" id="view-analytics">
+    <h1>Usage Analytics</h1>
+    <p class="sub">Built automatically from every structured usage report submitted through the site. Nothing to maintain — this updates itself as reports come in.</p>
+    <div class="stat-row" id="analytics-stat-row"></div>
+    <div class="section-label">Most-Used Items</div>
+    <div id="analytics-items"></div>
+    <div class="section-label">Situations Reported</div>
+    <div id="analytics-incidents"></div>
+    <div class="section-label">Usage by Kit Type</div>
+    <div id="analytics-kit-types"></div>
+    <div class="section-label">Currently Needs Restock (auto-flagged from reports)</div>
+    <div id="analytics-restock"></div>
+  </div>
+
+  <!-- ROUTE PLANNING -->
+  <div class="view" id="view-routes">
+    <h1>Route Planning</h1>
+    <p class="sub">Groups your active kits into geographic clusters so each visit day covers kits that are actually near each other, not scattered across the whole valley. Only kits with saved coordinates are included.</p>
+    <div class="form-row" style="max-width:420px; margin-bottom:20px;">
+      <div>
+        <label for="cluster-size">Kits per visit day (target)</label>
+        <input id="cluster-size" type="number" value="6" min="2" max="20">
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button class="btn btn-primary" onclick="buildRoutes()" style="width:100%;">Build Route Groups</button>
+      </div>
+    </div>
+    <div id="routes-output"></div>
+  </div>
+
+</main>
+
+<!-- KIT MODAL -->
+<div class="modal-overlay" id="scanner-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="close-row">
+      <h2>Scan Sticker</h2>
+      <button class="x-btn" onclick="closeScanner()">✕</button>
+    </div>
+    <p class="sub" style="margin-bottom:14px;">Point your camera at the QR sticker already on the box.</p>
+    <div id="qr-reader" style="width:100%; min-height:280px; background:#000; border-radius:4px; overflow:hidden;"></div>
+    <p id="scan-status" style="font-size:13px; color:var(--text-dim); margin-top:10px;"></p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="kit-modal">
+  <div class="modal">
+    <div class="close-row">
+      <h2 id="kit-modal-title">Add Kit</h2>
+      <button class="x-btn" onclick="closeKitModal()">✕</button>
+    </div>
+    <input type="hidden" id="kit-id-hidden">
+    <div class="form-row">
+      <div>
+        <label for="kit-type">Type</label>
+        <select id="kit-type" onchange="if(!currentEditId) populateStandardContents();">
+          <option>Stop the Bleed</option>
+          <option>Naloxone</option>
+          <option>Kitchen Bleed and Burn Box</option>
+          <option>Fire Extinguisher</option>
+          <option>Outdoor AED</option>
+          <option>Mass Casualty Kit</option>
+          <option>Custom Kit</option>
+        </select>
+      </div>
+      <div>
+        <label for="kit-code">Kit ID</label>
+        <input id="kit-code" placeholder="scan or enter manually">
+        <button type="button" class="btn btn-ghost btn-small" style="margin-top:-8px; margin-bottom:14px;" onclick="openScanner()">📷 Scan Sticker</button>
+      </div>
+    </div>
+    <label for="kit-client">Client / Location Name</label>
+    <input id="kit-client" placeholder="e.g. Riverside Coffee Co.">
+    <label for="kit-client-email">Client Email</label>
+    <input id="kit-client-email" placeholder="for monthly reports" type="email">
+    <label for="kit-address">Address</label>
+    <div style="position:relative;">
+      <input id="kit-address" placeholder="Start typing an address..." autocomplete="off">
+      <div id="address-suggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:var(--bg-card); border:1px solid var(--line); border-top:none; z-index:20; max-height:220px; overflow-y:auto;"></div>
+    </div>
+    <div class="form-row">
+      <div>
+        <label for="kit-install">Install Date</label>
+        <input id="kit-install" type="date">
+      </div>
+      <div>
+        <label for="kit-status">Status</label>
+        <select id="kit-status">
+          <option value="pending">New Inquiry — Needs Setup</option>
+          <option value="active">Active</option>
+          <option value="flagged">Flagged / Needs Service</option>
+          <option value="retired">Retired</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:8px;">Assigned QR Code</div>
+    <p class="sub" style="margin-top:-4px;">This confirms which pre-printed card this kit is paired with — scan the physical sticker above to assign it, rather than typing a code by hand.</p>
+    <div id="qr-wrap" style="background:#fff; padding:16px; border-radius:4px; display:inline-flex; flex-direction:column; align-items:center; gap:8px;">
+      <div id="qr-code"></div>
+      <div id="qr-code-label" style="font-family:var(--font-mono); font-size:11px; color:#0E1620; font-weight:600;"></div>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn btn-ghost btn-small" id="log-inspection-btn" onclick="logInspectionNow()" style="display:none;">Log Inspection Visit (Today)</button>
+    </div>
+
+    <div class="section-label" style="margin-top:8px;">Components &amp; Expirations</div>
+    <div id="components-wrap"></div>
+    <button class="btn btn-ghost btn-small" onclick="addComponentRow()">+ Add Component</button>
+
+    <div class="section-label">Service Log</div>
+    <div id="log-wrap"></div>
+    <div class="form-row" style="margin-top:8px;">
+      <input id="new-log-note" placeholder="Add a service note...">
+      <button class="btn btn-ghost btn-small" onclick="addLogEntry()" style="height:fit-content;">+ Log Entry</button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px; justify-content:space-between;">
+      <button class="btn btn-ghost" id="delete-kit-btn" onclick="deleteKit()" style="color:var(--bad); border-color:var(--bad); display:none;">Delete Kit</button>
+      <div style="display:flex; gap:10px; margin-left:auto;">
+        <button class="btn btn-ghost" onclick="closeKitModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveKit()">Save Kit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let kits = [];
+let currentEditId = null;
+let leafletMap = null;
+let mapMarkers = [];
+let ADMIN_PW = '';
+
+// ===== CAMERA QR SCANNER (for pre-printed stickers) =====
+let html5QrScanner = null;
+
+function openScanner(){
+  document.getElementById('scanner-modal').classList.add('open');
+  document.getElementById('scan-status').textContent = 'Starting camera...';
+  html5QrScanner = new Html5Qrcode('qr-reader');
+  setTimeout(() => {
+  html5QrScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: 220 },
+    (decodedText) => {
+      // Sticker encodes a full URL like https://rescueradius.com/report.html?kit=RR-0034
+      let code = decodedText;
+      try{
+        const url = new URL(decodedText);
+        const kitParam = url.searchParams.get('kit');
+        if(kitParam) code = kitParam;
+      }catch(e){
+        // Not a full URL — use whatever was scanned as-is
+      }
+      document.getElementById('kit-code').value = code;
+      renderQRCode(code, document.getElementById('kit-client').value.trim());
+      closeScanner();
+    },
+    () => { /* ignore per-frame scan failures — this fires constantly while searching */ }
+  ).catch((err) => {
+    document.getElementById('scan-status').textContent = 'Could not start camera — check permissions and try again.';
+  });
+  }, 150);
+}
+
+function closeScanner(){
+  document.getElementById('scanner-modal').classList.remove('open');
+  if(html5QrScanner){
+    html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(() => {});
+    html5QrScanner = null;
+  }
+}
+
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbw28zShgemHjzzF1D5M6kY6jn52PE99qvKyCKkOEW6KveZb1Sz3t4Jl6zplQ2pcS-4r/exec';
+
+function showLoginScreen(errorMsg){
+  document.getElementById('app-content').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  const err = document.getElementById('login-error');
+  if(errorMsg){ err.textContent = errorMsg; err.style.display = 'block'; }
+  else { err.style.display = 'none'; }
+  localStorage.removeItem('rr-admin-pw');
+  ADMIN_PW = '';
+}
+
+function unlockApp(){
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-content').style.display = 'block';
+  loadKits();
+}
+
+async function attemptLogin(){
+  const pw = document.getElementById('login-password').value;
+  if(!pw) return;
+  // Validate by actually asking the backend — the real password lives only
+  // in the Apps Script, never in this page's code.
+  let testResult;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(pw));
+    testResult = await res.json();
+  }catch(e){
+    testResult = null;
+  }
+
+  if(testResult && testResult.error === 'unauthorized'){
+    document.getElementById('login-error').textContent = 'Incorrect password — try again.';
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+  if(testResult === null){
+    document.getElementById('login-error').textContent = 'Could not reach the backend — check your connection.';
+    document.getElementById('login-error').style.display = 'block';
+    return;
+  }
+
+  ADMIN_PW = pw;
+  localStorage.setItem('rr-admin-pw', pw);
+  unlockApp();
+}
+
+document.getElementById('login-password').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') attemptLogin();
+});
+
+// On load, try any previously-saved password — but actually verify it
+// against the backend first, instead of blindly trusting whatever's in
+// localStorage.
+(async function(){
+  const saved = localStorage.getItem('rr-admin-pw');
+  if(!saved) return;
+
+  let testResult;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(saved));
+    testResult = await res.json();
+  }catch(e){
+    testResult = null;
+  }
+
+  if(testResult && testResult.error === 'unauthorized'){
+    localStorage.removeItem('rr-admin-pw');
+    ADMIN_PW = '';
+    return;
+  }
+  if(testResult === null){
+    return;
+  }
+
+  ADMIN_PW = saved;
+  unlockApp();
+})();
+
+async function loadKits(){
+  try{
+    const res = await fetch(BACKEND_URL + '?action=list&password=' + encodeURIComponent(ADMIN_PW));
+    const data = await res.json();
+    if(data && data.error === 'unauthorized'){
+      showLoginScreen('Session expired — please log in again.');
+      return;
+    }
+    kits = Array.isArray(data) ? data : [];
+    render();
+  }catch(e){
+    console.error('Backend load error', e);
+    kits = [];
+    render();
+  }
+}
+
+// Fire-and-forget style write: POST in no-cors mode (avoids CORS issues since
+// we don't need to read the response), then always re-load from the backend
+// afterward so the UI reflects the real, current state.
+async function postToBackend(payload){
+  try{
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    return data;
+  }catch(e){
+    console.error('Backend write error', e);
+    return { ok: false, error: 'network', detail: e.message };
+  }
+}
+
+function genId(type){
+  const prefix = {'Stop the Bleed':'STB','Naloxone':'NLX','Kitchen Bleed and Burn Box':'KTCH','Fire Extinguisher':'FIRE','Outdoor AED':'AED','Mass Casualty Kit':'MCI','Custom Kit':'CUST'}[type] || 'KIT';
+  const num = Math.floor(1000 + Math.random()*8999);
+  return `${prefix}-${num}`;
+}
+
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const now = new Date();
+  const target = new Date(dateStr);
+  return Math.ceil((target - now) / (1000*60*60*24));
+}
+
+function kitSeverity(kit){
+  if(kit.status === 'pending') return 'warn';
+  if(kit.status === 'flagged') return 'bad';
+  if(kit.status === 'retired') return 'ok';
+  let minDays = null;
+  (kit.components||[]).forEach(c=>{
+    if(c.expiry){
+      const d = daysUntil(c.expiry);
+      if(minDays === null || d < minDays) minDays = d;
+    }
+  });
+  if(minDays === null) return 'ok';
+  if(minDays < 0) return 'bad';
+  if(minDays <= 30) return 'warn';
+  return 'ok';
+}
+
+function severityLabel(kit, sev){
+  if(kit.status === 'pending') return 'New inquiry — needs setup';
+  if(kit.status === 'flagged') return 'Flagged for service';
+  if(kit.status === 'retired') return 'Retired';
+  if(sev === 'bad') return 'Component expired';
+  if(sev === 'warn') return 'Expiring within 30 days';
+  return 'Up to date';
+}
+
+function render(){
+  renderDashboard();
+  renderInventory();
+  renderMap();
+}
+
+function renderDashboard(){
+  const active = kits.filter(k=>k.status!=='retired');
+  const bad = active.filter(k=>kitSeverity(k)==='bad').length;
+  const warn = active.filter(k=>kitSeverity(k)==='warn').length;
+  const ok = active.filter(k=>kitSeverity(k)==='ok').length;
+
+  document.getElementById('stat-row').innerHTML = `
+    <div class="stat"><div class="num">${active.length}</div><div class="label">Active Kits</div></div>
+    <div class="stat ok"><div class="num">${ok}</div><div class="label">Up to Date</div></div>
+    <div class="stat warn"><div class="num">${warn}</div><div class="label">Due Within 30 Days</div></div>
+    <div class="stat bad"><div class="num">${bad}</div><div class="label">Expired / Flagged</div></div>
+  `;
+
+  const needsAttention = active.filter(k=>kitSeverity(k)!=='ok').sort((a,b)=>{
+    const order = {bad:0, warn:1, ok:2};
+    return order[kitSeverity(a)] - order[kitSeverity(b)];
+  });
+
+  const list = document.getElementById('attention-list');
+  if(needsAttention.length===0){
+    list.innerHTML = `<div class="empty-state"><h3>Nothing needs attention</h3><p>Every active kit is current.</p></div>`;
+    return;
+  }
+  list.innerHTML = needsAttention.map(k=>kitCardHTML(k)).join('');
+}
+
+function renderInventory(){
+  const list = document.getElementById('inventory-list');
+  if(kits.length===0){
+    list.innerHTML = `<div class="empty-state"><h3>No kits yet</h3><p>Add your first placement to start tracking it.</p></div>`;
+    return;
+  }
+  list.innerHTML = kits.map(k=>kitCardHTML(k)).join('');
+}
+
+function kitCardHTML(k){
+  const sev = kitSeverity(k);
+  return `
+    <div class="kit-card ${sev}" onclick="openKitModal('${k.id}')">
+      <div class="top-row">
+        <div>
+          <div class="id">${k.code || k.id}</div>
+          <div class="name">${k.client || 'Unnamed placement'} <span style="color:var(--text-dim); font-weight:400;">— ${k.type}</span></div>
+          <div class="meta">${k.address || 'No address on file'}</div>
+        </div>
+        <div class="status-text"><span class="dot ${sev}"></span>${severityLabel(k, sev)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMap(){
+  if(!leafletMap){
+    leafletMap = L.map('map').setView([43.6150, -116.2023], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(leafletMap);
+  }
+  mapMarkers.forEach(m=>leafletMap.removeLayer(m));
+  mapMarkers = [];
+  const colors = {ok:'#5FA876', warn:'#D9A441', bad:'#D9534F'};
+  kits.forEach(k=>{
+    if(k.lat && k.lng && k.status!=='retired'){
+      const sev = kitSeverity(k);
+      const marker = L.circleMarker([parseFloat(k.lat), parseFloat(k.lng)], {
+        radius:9, fillColor:colors[sev], color:'#0E1620', weight:2, fillOpacity:0.9
+      }).addTo(leafletMap);
+      marker.bindPopup(`<b>${k.code||k.id}</b><br>${k.client||''}<br>${k.type}<br>${severityLabel(k,sev)}`);
+      mapMarkers.push(marker);
+    }
+  });
+}
+
+// NAV
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    if(btn.dataset.view === 'map'){ setTimeout(()=>{ if(leafletMap) leafletMap.invalidateSize(); }, 100); }
+    if(btn.dataset.view === 'reports'){ renderReports(); }
+    if(btn.dataset.view === 'analytics'){ loadAnalytics(); }
+  });
+});
+
+// ---------- Route Planning: geographic clustering ----------
+
+function haversineMiles(lat1, lng1, lat2, lng2){
+  const toRad = d => d * Math.PI / 180;
+  const R = 3958.8; // Earth radius, miles
+  const dLat = toRad(lat2-lat1);
+  const dLng = toRad(lng2-lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function buildRoutes(){
+  const targetSize = parseInt(document.getElementById('cluster-size').value) || 6;
+  const output = document.getElementById('routes-output');
+
+  const mappable = kits.filter(k => k.lat && k.lng && k.status !== 'retired')
+    .map(k => ({...k, lat: parseFloat(k.lat), lng: parseFloat(k.lng)}));
+
+  if(mappable.length === 0){
+    output.innerHTML = '<p class="sub">No kits have saved coordinates yet. Add lat/lng when editing a kit to include it here.</p>';
+    return;
+  }
+
+  // Greedy nearest-neighbor clustering: seed a cluster with the farthest
+  // unclustered kit from the valley center (spreads clusters out geographically
+  // rather than always starting from the same corner), then pull in its
+  // nearest unclustered neighbors until the cluster hits target size.
+  const unclustered = [...mappable];
+  const clusters = [];
+  const centerLat = 43.6150, centerLng = -116.2023; // Treasure Valley center
+
+  while(unclustered.length > 0){
+    // Seed: farthest-from-center remaining kit
+    let seedIdx = 0, seedDist = -1;
+    unclustered.forEach((k, i) => {
+      const d = haversineMiles(centerLat, centerLng, k.lat, k.lng);
+      if(d > seedDist){ seedDist = d; seedIdx = i; }
+    });
+    const seed = unclustered.splice(seedIdx, 1)[0];
+    const cluster = [seed];
+
+    while(cluster.length < targetSize && unclustered.length > 0){
+      // Find the unclustered kit nearest to ANY kit already in this cluster
+      let bestIdx = -1, bestDist = Infinity;
+      unclustered.forEach((k, i) => {
+        const minDistToCluster = Math.min(...cluster.map(c => haversineMiles(c.lat, c.lng, k.lat, k.lng)));
+        if(minDistToCluster < bestDist){ bestDist = minDistToCluster; bestIdx = i; }
+      });
+      cluster.push(unclustered.splice(bestIdx, 1)[0]);
+    }
+    clusters.push(cluster);
+  }
+
+  // Within each cluster, order stops via simple nearest-neighbor path
+  // (a rough but useful visit order, not a true optimal route)
+  const orderedClusters = clusters.map(cluster => {
+    const remaining = [...cluster];
+    const path = [remaining.shift()];
+    while(remaining.length){
+      const last = path[path.length-1];
+      let bestIdx = 0, bestDist = Infinity;
+      remaining.forEach((k, i) => {
+        const d = haversineMiles(last.lat, last.lng, k.lat, k.lng);
+        if(d < bestDist){ bestDist = d; bestIdx = i; }
+      });
+      path.push(remaining.splice(bestIdx, 1)[0]);
+    }
+    let totalMiles = 0;
+    for(let i=1; i<path.length; i++) totalMiles += haversineMiles(path[i-1].lat, path[i-1].lng, path[i].lat, path[i].lng);
+    return { path, totalMiles };
+  });
+
+  output.innerHTML = orderedClusters.map((c, idx) => `
+    <div class="kit-card" style="margin-bottom:16px;">
+      <h3 style="margin-bottom:6px;">Day ${idx+1} — ${c.path.length} kit${c.path.length>1?'s':''}, ~${c.totalMiles.toFixed(1)} mi between stops</h3>
+      <ol style="margin:8px 0 0 20px; padding:0; font-size:14px;">
+        ${c.path.map(k => `<li style="margin-bottom:4px;"><strong>${k.code || k.id}</strong> (${k.type}) — ${k.address || 'No address on file'}</li>`).join('')}
+      </ol>
+    </div>
+  `).join('');
+}
+
+async function loadAnalytics(){
+  const wrap = document.getElementById('analytics-stat-row');
+  wrap.innerHTML = '<p class="sub">Loading...</p>';
+  let data;
+  try{
+    const res = await fetch(BACKEND_URL + '?action=analytics&password=' + encodeURIComponent(ADMIN_PW));
+    data = await res.json();
+  }catch(e){
+    data = null;
+  }
+
+  if(!data || data.error){
+    wrap.innerHTML = '<p class="sub">Could not load analytics right now.</p>';
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="stat-card"><div class="stat-num">${data.totalUsageEvents}</div><div class="stat-label">Usage Reports</div></div>
+    <div class="stat-card"><div class="stat-num">${data.activeKits}</div><div class="stat-label">Active Kits</div></div>
+    <div class="stat-card"><div class="stat-num">${data.restockNeeded.length}</div><div class="stat-label">Need Restock</div></div>
+  `;
+
+  const renderBarList = (obj, containerId, emptyMsg) => {
+    const entries = Object.entries(obj).sort((a,b) => b[1]-a[1]);
+    const container = document.getElementById(containerId);
+    if(!entries.length){ container.innerHTML = `<p class="sub">${emptyMsg}</p>`; return; }
+    const max = entries[0][1];
+    container.innerHTML = entries.map(([label, count]) => `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px;">
+          <span>${label}</span><span style="color:var(--text-dim);">${count}</span>
+        </div>
+        <div style="background:var(--line); border-radius:3px; height:6px; overflow:hidden;">
+          <div style="background:var(--accent); height:100%; width:${(count/max*100)}%;"></div>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  renderBarList(data.itemCounts, 'analytics-items', 'No usage reports yet.');
+  renderBarList(data.incidentCounts, 'analytics-incidents', 'No situation data yet.');
+  renderBarList(data.kitTypeCounts, 'analytics-kit-types', 'No usage reports yet.');
+
+  const restockEl = document.getElementById('analytics-restock');
+  if(!data.restockNeeded.length){
+    restockEl.innerHTML = '<p class="sub">Nothing currently flagged.</p>';
+  } else {
+    restockEl.innerHTML = data.restockNeeded.map(r =>
+      `<div class="kit-card" style="margin-bottom:8px;"><strong>${r.kit}</strong> (${r.type}) — ${r.component}</div>`
+    ).join('');
+  }
+}
+
+// KIT MODAL
+function openKitModal(id){
+  currentEditId = id || null;
+  const modal = document.getElementById('kit-modal');
+  const title = document.getElementById('kit-modal-title');
+  const deleteBtn = document.getElementById('delete-kit-btn');
+
+  if(id){
+    const k = kits.find(x=>x.id===id);
+    title.textContent = 'Edit Kit';
+    deleteBtn.style.display = 'inline-block';
+    document.getElementById('log-inspection-btn').style.display = 'inline-block';
+    document.getElementById('kit-id-hidden').value = k.id;
+    document.getElementById('kit-type').value = k.type;
+    document.getElementById('kit-code').value = k.code || '';
+    document.getElementById('kit-client').value = k.client || '';
+    document.getElementById('kit-client-email').value = k.clientEmail || '';
+    document.getElementById('kit-address').value = k.address || '';
+    document.getElementById('kit-install').value = k.installDate || '';
+    document.getElementById('kit-status').value = k.status || 'active';
+    renderComponents(k.components||[]);
+    renderLog(k.serviceLog||[]);
+    renderQRCode(k.code, k.client);
+  }else{
+    title.textContent = 'Add Kit';
+    deleteBtn.style.display = 'none';
+    document.getElementById('log-inspection-btn').style.display = 'none';
+    document.getElementById('kit-id-hidden').value = '';
+    document.getElementById('kit-type').value = 'Stop the Bleed';
+    document.getElementById('kit-code').value = '';
+    document.getElementById('kit-client').value = '';
+    document.getElementById('kit-client-email').value = '';
+    document.getElementById('kit-address').value = '';
+    document.getElementById('kit-install').value = new Date().toISOString().slice(0,10);
+    document.getElementById('kit-status').value = 'active';
+    populateStandardContents();
+    renderLog([]);
+    document.getElementById('kit-code').value = genId('Stop the Bleed');
+    renderQRCode(document.getElementById('kit-code').value, '');
+  }
+  modal.classList.add('open');
+}
+
+function closeKitModal(){
+  document.getElementById('kit-modal').classList.remove('open');
+  currentEditId = null;
+}
+
+function renderComponents(components){
+  const wrap = document.getElementById('components-wrap');
+  wrap.innerHTML = '';
+  const noExpiryNames = ['Trauma Shears'];
+  components.forEach(c=>addComponentRow(c.name, c.expiry, noExpiryNames.includes(c.name), !!c.needsRestock));
+  if(components.length===0) addComponentRow();
+}
+
+// Standard contents per kit type — matches what's actually listed on each service page.
+// Items with noExpiry:true skip the date field entirely (nothing to track — e.g. shears).
+const STANDARD_CONTENTS = {
+  'Stop the Bleed': [
+    {name:'Tourniquet (x2)'}, {name:'Combat Gauze'}, {name:'Chest Seal'},
+    {name:'Emergency Bandage'}, {name:'Trauma Shears', noExpiry:true}, {name:'Basic Gauze (x2)'}
+  ],
+  'Naloxone': [
+    {name:'Naloxone'}, {name:'Positioning Donut'}, {name:'CPR Mask'}, {name:'Gloves/PPE'}
+  ],
+  'Kitchen Bleed and Burn Box': [
+    {name:'Tourniquet (x2)'}, {name:'Combat Gauze'}, {name:'Chest Seal'}, {name:'Emergency Bandage'},
+    {name:'Dry Burn Sheet'}, {name:'Hydrogel Dressing'}
+  ],
+  'Fire Extinguisher': [{name:'Fire Extinguisher'}],
+  'Outdoor AED': [{name:'AED'}, {name:'CPR Mask'}],
+  'Mass Casualty Kit': [
+    {name:'Tourniquet'}, {name:'Chest Seal'}, {name:'CPR Mask'}, {name:'Emergency Blanket'}, {name:'AED'}
+  ],
+  'Custom Kit': []
+};
+
+function populateStandardContents(){
+  const type = document.getElementById('kit-type').value;
+  const list = STANDARD_CONTENTS[type] || [];
+  const wrap = document.getElementById('components-wrap');
+  wrap.innerHTML = '';
+  if(list.length === 0){
+    addComponentRow();
+  } else {
+    list.forEach(item => addComponentRow(item.name, '', item.noExpiry));
+  }
+}
+
+function addComponentRow(name='', expiry='', noExpiry=false, needsRestock=false){
+  const wrap = document.getElementById('components-wrap');
+  const row = document.createElement('div');
+  row.className = 'component-row';
+  row.innerHTML = `
+    <input placeholder="Component (e.g. Tourniquet)" value="${name}" class="comp-name">
+    <div class="row-controls">
+      ${noExpiry
+        ? `<span class="sub" style="white-space:nowrap;">No expiration</span><input type="hidden" class="comp-expiry" value="">`
+        : `<input type="date" value="${expiry}" class="comp-expiry">`}
+      <span class="restock-label" onclick="this.querySelector('.comp-restock').click()">
+        <input type="checkbox" class="comp-restock" ${needsRestock ? 'checked' : ''} onclick="event.stopPropagation()"> Needs restock
+      </span>
+      <button class="remove-x" onclick="this.parentElement.parentElement.remove()">✕</button>
+    </div>
+  `;
+  wrap.appendChild(row);
+}
+
+function renderLog(log){
+  const wrap = document.getElementById('log-wrap');
+  if(log.length===0){
+    wrap.innerHTML = `<p class="sub" style="margin:0 0 10px;">No service history yet.</p>`;
+    return;
+  }
+  wrap.innerHTML = log.slice().reverse().map(l=>`
+    <div class="log-entry"><div class="date">${l.date}</div>${l.note}</div>
+  `).join('');
+}
+
+function addLogEntry(){
+  const note = document.getElementById('new-log-note').value.trim();
+  if(!note) return;
+  const id = currentEditId;
+  const today = new Date().toISOString().slice(0,10);
+  if(id){
+    const k = kits.find(x=>x.id===id);
+    k.serviceLog = k.serviceLog || [];
+    k.serviceLog.push({date: today, note});
+    renderLog(k.serviceLog);
+  }else{
+    // for a not-yet-saved kit, stash in a temp array on the modal
+    window._pendingLog = window._pendingLog || [];
+    window._pendingLog.push({date: today, note});
+    renderLog(window._pendingLog);
+  }
+  document.getElementById('new-log-note').value = '';
+}
+
+async function geocodeAddress(address){
+  if(!address) return { lat: '', lng: '' };
+  try{
+    const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(address));
+    const results = await res.json();
+    if(results && results.length){
+      return { lat: results[0].lat, lng: results[0].lon };
+    }
+  }catch(e){
+    console.error('Geocoding failed', e);
+  }
+  return { lat: '', lng: '' };
+}
+
+// ---------- Address autocomplete ----------
+let addressSearchTimeout = null;
+let selectedAddressCoords = null;
+let selectedAddressLabel = null; // the exact text that was set when a suggestion was clicked
+
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('kit-address');
+  const suggBox = document.getElementById('address-suggestions');
+  if(!input) return;
+
+  input.addEventListener('input', () => {
+    selectedAddressCoords = null;
+    selectedAddressLabel = null;
+    const query = input.value.trim();
+    clearTimeout(addressSearchTimeout);
+    if(query.length < 4){ suggBox.style.display = 'none'; return; }
+
+    addressSearchTimeout = setTimeout(async () => {
+      try{
+        const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=us&q=' + encodeURIComponent(query));
+        const results = await res.json();
+        if(!results || !results.length){ suggBox.style.display = 'none'; return; }
+
+        suggBox.innerHTML = results.map(r => `
+          <div class="address-suggestion" data-lat="${r.lat}" data-lng="${r.lon}" data-label="${r.display_name.replace(/"/g,'&quot;')}"
+               style="padding:10px 12px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--line);">
+            ${r.display_name}
+          </div>
+        `).join('');
+        suggBox.style.display = 'block';
+
+        suggBox.querySelectorAll('.address-suggestion').forEach(el => {
+          el.addEventListener('click', () => {
+            input.value = el.dataset.label;
+            selectedAddressCoords = { lat: el.dataset.lat, lng: el.dataset.lng };
+            selectedAddressLabel = el.dataset.label;
+            suggBox.style.display = 'none';
+          });
+          el.addEventListener('mouseenter', () => el.style.background = 'var(--bg)');
+          el.addEventListener('mouseleave', () => el.style.background = 'transparent');
+        });
+      }catch(e){
+        console.error('Address search failed', e);
+      }
+    }, 350); // debounce so it's not firing a request on every keystroke
+  });
+
+  document.addEventListener('click', (e) => {
+    if(e.target !== input) suggBox.style.display = 'none';
+  });
+});
+
+async function saveKit(){
+  const saveBtn = document.querySelector('#kit-modal .btn-primary');
+  // Lock the button immediately, before anything else — this is what
+  // prevents a second click from starting a second save while the first
+  // is still in flight, which was creating duplicate kits.
+  if(saveBtn && saveBtn.disabled){
+    return; // a save is already in progress, ignore this click entirely
+  }
+  if(saveBtn){ saveBtn.disabled = true; }
+  const originalBtnText = saveBtn ? saveBtn.textContent : '';
+
+  const type = document.getElementById('kit-type').value;
+  let code = document.getElementById('kit-code').value.trim();
+  if(!code) code = genId(type);
+
+  const components = Array.from(document.querySelectorAll('.component-row')).map(row=>({
+    name: row.querySelector('.comp-name').value.trim(),
+    expiry: row.querySelector('.comp-expiry').value,
+    needsRestock: row.querySelector('.comp-restock').checked
+  })).filter(c=>c.name);
+
+  const address = document.getElementById('kit-address').value.trim();
+  let coords;
+  if(selectedAddressCoords && address === selectedAddressLabel){
+    coords = selectedAddressCoords; // picked from the dropdown — already have exact coordinates
+  } else {
+    if(saveBtn){ saveBtn.textContent = 'Locating address...'; }
+    coords = await geocodeAddress(address);
+    if(saveBtn){ saveBtn.textContent = originalBtnText; }
+  }
+
+  const kitData = {
+    type,
+    code,
+    client: document.getElementById('kit-client').value.trim(),
+    clientEmail: document.getElementById('kit-client-email').value.trim(),
+    address,
+    lat: coords.lat,
+    lng: coords.lng,
+    installDate: document.getElementById('kit-install').value,
+    status: document.getElementById('kit-status').value,
+    components
+  };
+
+  if(currentEditId){
+    const k = kits.find(x=>x.id===currentEditId);
+    kitData.id = currentEditId;
+    kitData.serviceLog = k.serviceLog || [];
+  }else{
+    kitData.id = 'k' + Date.now() + Math.floor(Math.random() * 100000);
+    kitData.serviceLog = window._pendingLog || [];
+    window._pendingLog = [];
+  }
+  await postToBackend({ action: 'save', kit: kitData, password: ADMIN_PW });
+  await loadKits();
+
+  // Verify the kit actually landed in the refreshed list
+  const savedOk = kits.some(k => k.id === kitData.id);
+  if(!savedOk){
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = originalBtnText; }
+    alert('This kit may not have saved. Check that your admin password is correct and that the backend script is deployed with the latest version, then try again. Your entered info is still in this form.');
+    return; // leave the modal open so nothing is lost
+  }
+  if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = originalBtnText; }
+  closeKitModal();
+}
+
+async function deleteKit(){
+  if(!currentEditId) return;
+  if(!confirm('Delete this kit permanently? This cannot be undone.')) return;
+  await postToBackend({ action: 'delete', id: currentEditId, password: ADMIN_PW });
+  await loadKits();
+  closeKitModal();
+}
+
+// USAGE REPORT
+const REPORT_BASE_URL = 'https://rescueradius.com/report.html';
+
+function renderQRCode(code, client){
+  const target = document.getElementById('qr-code');
+  target.innerHTML = '';
+  if(!code) return;
+  new QRCode(target, {
+    text: REPORT_BASE_URL + '?kit=' + encodeURIComponent(code),
+    width: 140, height: 140,
+    colorDark: '#0E1620', colorLight: '#ffffff'
+  });
+  document.getElementById('qr-code-label').textContent = code + (client ? ' · ' + client : '');
+}
+
+document.getElementById('kit-code').addEventListener('input', (e)=>{
+  renderQRCode(e.target.value.trim(), document.getElementById('kit-client').value.trim());
+});
+document.getElementById('kit-client').addEventListener('input', (e)=>{
+  renderQRCode(document.getElementById('kit-code').value.trim(), e.target.value.trim());
+});
+document.getElementById('kit-type').addEventListener('change', (e)=>{
+  if(!currentEditId){
+    const newCode = genId(e.target.value);
+    document.getElementById('kit-code').value = newCode;
+    renderQRCode(newCode, document.getElementById('kit-client').value.trim());
+  }
+});
+
+function printQR(){
+  const target = document.getElementById('qr-code');
+  const canvas = target.querySelector('canvas');
+  const img = target.querySelector('img');
+  const src = canvas ? canvas.toDataURL('image/png') : (img ? img.src : null);
+  if(!src){ alert('Enter a Kit ID first to generate a code.'); return; }
+  const label = document.getElementById('qr-code-label').textContent;
+  const w = window.open('', '_blank', 'width=400,height=500');
+  w.document.write(`
+    <html><head><title>Print QR — ${label}</title></head>
+    <body style="text-align:center; font-family:sans-serif; padding:40px;">
+      <img src="${src}" style="width:220px; height:220px;"><br>
+      <p style="font-size:14px; font-weight:600; margin-top:12px;">${label}</p>
+      <p style="font-size:11px; color:#666;">Scan to report kit usage — RescueRadius</p>
+      <script>window.onload = () => window.print();</` + `script>
+    </body></html>
+  `);
+  w.document.close();
+}
+
+// ===== MONTHLY REPORTS =====
+// Actual sending now happens automatically server-side (see the Apps Script
+// backend's monthly trigger). This section just previews what clients will
+// receive, and can trigger an immediate send for testing.
+
+function groupKitsByClient(){
+  const groups = {};
+  kits.filter(k=>k.status!=='retired').forEach(k=>{
+    const key = (k.client||'Unnamed') + '|' + (k.clientEmail||'');
+    if(!groups[key]) groups[key] = { client: k.client||'Unnamed', email: k.clientEmail||'', kits: [] };
+    groups[key].kits.push(k);
+  });
+  return Object.values(groups);
+}
+
+function buildReportText(group){
+  const now = new Date();
+  const monthLabel = now.toLocaleString('default', { month:'long', year:'numeric' });
+  const thirtyDaysAgo = new Date(now.getTime() - 30*24*60*60*1000);
+
+  let text = `RescueRadius — Monthly Service Report\n${monthLabel}\nPrepared for: ${group.client}\n\n`;
+
+  group.kits.forEach(k=>{
+    const sev = kitSeverity(k);
+    const sevLabel = severityLabel(k, sev);
+    text += `----------------------------------------\n`;
+    text += `Kit: ${k.code || k.id}  (${k.type})\n`;
+    text += `Location: ${k.address || 'On file'}\n`;
+    text += `Status: ${sevLabel}\n`;
+
+    if((k.components||[]).length){
+      text += `Components:\n`;
+      k.components.forEach(c=>{
+        text += `  - ${c.name}${c.expiry ? ' (expires ' + c.expiry + ')' : ''}\n`;
+      });
+    }
+
+    const recentLog = (k.serviceLog||[]).filter(l => new Date(l.date) >= thirtyDaysAgo);
+    if(recentLog.length){
+      text += `Activity this period:\n`;
+      recentLog.forEach(l=>{ text += `  - ${l.date}: ${l.note}\n`; });
+    }else{
+      text += `Activity this period: No inspections, replacements, or usage reported.\n`;
+    }
+    text += `\n`;
+  });
+
+  text += `----------------------------------------\n`;
+  text += `This report documents the inspection and maintenance status of all RescueRadius equipment on file for ${group.client} as of ${now.toLocaleDateString()}. Keep this record on file for your own compliance or insurance purposes.\n\n`;
+  text += `RescueRadius · (208) 918-3185 · RescueRadius@outlook.com`;
+  return text;
+}
+
+function renderReports(){
+  const list = document.getElementById('reports-list');
+  const groups = groupKitsByClient();
+  if(groups.length===0){
+    list.innerHTML = `<div class="empty-state"><h3>No active kits yet</h3><p>Add a kit with a client email to generate its first report.</p></div>`;
+    return;
+  }
+  list.innerHTML = groups.map((g,i)=>`
+    <div class="kit-card" style="cursor:default;">
+      <div class="top-row">
+        <div>
+          <div class="name">${g.client}</div>
+          <div class="meta">${g.email || 'No email on file — this client will be skipped'} · ${g.kits.length} kit${g.kits.length>1?'s':''}</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-ghost btn-small" onclick="previewReport(${i})">Preview</button>
+          <button class="btn btn-primary btn-small" onclick="sendOneReportNow(${i})" ${!g.email ? 'disabled' : ''}>Send This Report</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  window._reportGroups = groups;
+}
+
+function previewReport(i){
+  const text = buildReportText(window._reportGroups[i]);
+  const w = window.open('', '_blank', 'width=520,height=640');
+  w.document.write(`<pre style="font-family:ui-monospace,monospace; font-size:13px; white-space:pre-wrap; padding:24px;">${text.replace(/</g,'&lt;')}</pre>`);
+  w.document.close();
+}
+
+async function sendAllReportsNow(){
+  if(!confirm("Send this month's reports to every client with an email on file, right now?")) return;
+  const btn = document.getElementById('send-all-btn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Sending...'; }
+  await postToBackend({ action: 'sendMonthlyNow', password: ADMIN_PW });
+  if(btn){ btn.disabled = false; btn.textContent = 'Send All Now'; }
+  alert('Requested — emails are being sent by the backend now. Check your inbox in a minute to confirm.');
+}
+
+async function logInspectionNow(){
+  if(!currentEditId) return;
+  const btn = document.getElementById('log-inspection-btn');
+  btn.disabled = true; btn.textContent = 'Logging...';
+  await postToBackend({ action: 'logInspection', password: ADMIN_PW, id: currentEditId });
+  await loadKits();
+  const k = kits.find(x=>x.id===currentEditId);
+  if(k) renderLog(k.serviceLog||[]);
+  btn.disabled = false; btn.textContent = 'Log Inspection Visit (Today)';
+}
+
+async function sendOneReportNow(i){
+  const group = window._reportGroups ? window._reportGroups[i] : null;
+  if(!group){
+    alert('Could not find that client — try switching away from this tab and back, then try again.');
+    return;
+  }
+  if(!group.email){ alert('This client has no email on file.'); return; }
+  if(!confirm(`Send this month's report to ${group.client} (${group.email}) only?`)) return;
+
+  const result = await postToBackend({ action: 'sendOneReport', password: ADMIN_PW, clientEmail: group.email });
+
+  if(result && result.ok){
+    alert(`Sent to ${group.client}.`);
+  } else if(result && result.error === 'unauthorized'){
+    alert('Your session may have expired. Please log out and back in, then try again.');
+  } else {
+    alert(`Something went wrong sending this report: ${result && result.error ? result.error : 'unknown error'}. Nothing was sent.`);
+  }
+}
+</script>
+
+</div>
+
+</body>
+</html>
