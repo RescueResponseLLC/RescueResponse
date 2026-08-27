@@ -146,6 +146,12 @@
         <label for="po-notes">Anything we should know before we install?</label>
         <textarea id="po-notes" placeholder="Best time to visit, access notes, etc."></textarea>
       </div>
+      <div style="display:flex; align-items:flex-start; gap:8px; margin-bottom:14px;">
+        <input type="checkbox" id="po-agree" required style="width:auto; margin-top:3px;">
+        <label for="po-agree" style="font-size:13px; text-transform:none; letter-spacing:normal; color:var(--text-dim); margin-bottom:0;">
+          I have read and agree to the <a href="contracts/contract-kitchen.html" target="_blank" rel="noopener">Service Agreement</a>, including the 6-month minimum term and cancellation terms.
+        </label>
+      </div>
       <button type="submit" class="btn btn-primary" style="align-self:flex-start;">Continue</button>
       <p class="submit-note"></p>
     </form>
