@@ -80,6 +80,14 @@
     padding:9px 10px; font-family:var(--font-body); font-size:14px; border-radius:3px; margin-bottom:14px;
   }
   input[type="date"]{ color-scheme: light; }
+  input[type="date"]::-webkit-calendar-picker-indicator{
+    filter: invert(1) brightness(1.5);
+    cursor: pointer;
+  }
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear{
+    filter: invert(1) brightness(1.8);
+  }
   input:focus, select:focus, textarea:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent);}
   .form-row{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
   @media(max-width:600px){.form-row{grid-template-columns:1fr;}}
