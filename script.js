@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
       }).catch(function(){ /* non-critical — email still sends below */ });
 
-      fetch('https://formsubmit.co/ajax/RescueRadius@outlook.com', {
+      fetch('https://formsubmit.co/ajax/team@rescueradius.com', {
         method: 'POST',
         headers: { 'Accept': 'application/json' },
         body: data
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(function () {
           if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Send'; }
           var note = form.querySelector('.submit-note');
-          if (note) { note.textContent = 'Something went wrong — please reach us directly at RescueRadius@outlook.com or (208) 918-3185.'; }
+          if (note) { note.textContent = 'Something went wrong — please reach us directly at team@rescueradius.com or (208) 918-3185.'; }
         });
     });
   });
