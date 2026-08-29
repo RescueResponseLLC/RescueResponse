@@ -171,6 +171,7 @@ section{padding:96px 0; position:relative; z-index:1; border-top:1px solid var(-
 
 /* SERVICES GRID */
 .services-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:2px; background:var(--line); border:1px solid var(--line);}
+.services-grid .service:last-child:nth-child(odd){grid-column:1 / -1;}
 @media(max-width:720px){.services-grid{grid-template-columns:1fr;}}
 .service{background:var(--bg); padding:36px 32px;}
 .service .num{font-family:var(--font-mono); color:var(--accent); font-size:12.5px;}
