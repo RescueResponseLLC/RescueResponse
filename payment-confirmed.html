@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Confirmed | RescueRadius</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topo"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="nav-left">
+      <a href="index.html" class="brand">
+        <svg class="mark" viewBox="0 0 30 30" aria-hidden="true">
+          <circle class="outer" cx="15" cy="15" r="14"/>
+          <circle cx="15" cy="15" r="9.5"/>
+          <rect class="cross-v" x="12.8" y="8" width="4.4" height="14" rx="1"/>
+          <rect class="cross-h" x="8" y="12.8" width="14" height="4.4" rx="1"/>
+        </svg>
+        <span class="wordmark">Rescue<span class="accent-word">Radius</span></span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-hero">
+  <div class="wrap">
+    <div class="eyebrow">Payment Received</div>
+    <h1 id="confirm-heading">You're almost set up.</h1>
+    <p id="confirm-sub">Just confirm the details below and you're done — nothing to retype.</p>
+  </div>
+</header>
+
+<section id="confirm-section">
+  <div class="wrap">
+    <div class="contact-box">
+
+      <div id="confirm-found" style="display:none;">
+        <h2>Confirm your order</h2>
+        <div id="confirm-summary" style="margin:20px 0; line-height:1.9;"></div>
+        <button id="confirm-btn" class="btn btn-primary">Confirm & Complete Setup</button>
+        <p class="submit-note" id="confirm-note"></p>
+      </div>
+
+      <div id="confirm-success" style="display:none;">
+        <h2>All set.</h2>
+        <p>Your order is confirmed. We'll be in touch to schedule installation, usually within 1–2 days.</p>
+      </div>
+
+      <div id="confirm-missing" style="display:none;">
+        <h2>Payment received — thanks!</h2>
+        <p>We couldn't automatically pull up your order details on this device or browser. No problem — just reach out below with your name and what you ordered, and we'll get everything set up.</p>
+        <p style="margin-top:16px;">
+          <a href="tel:+12089183185">(208) 918-3185</a><br>
+          <a href="mailto:team@rescueradius.com">team@rescueradius.com</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <p>
+      RESCUERADIUS LLC · IDAHO-OWNED
+      <svg class="flag" viewBox="0 0 30 20" aria-label="United States flag">
+        <rect width="30" height="20" fill="#F2EFE9"/>
+        <rect y="0" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="3.08" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="6.16" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="9.24" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="12.32" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="15.4" width="30" height="1.54" fill="#E8622E"/>
+        <rect y="18.48" width="30" height="1.54" fill="#E8622E"/>
+        <rect width="12" height="10.8" fill="#7C9885"/>
+      </svg>
+      · &copy; 2026
+    </p>
+    <p>(208) 918-3185 · team@rescueradius.com</p>
+  </div>
+</footer>
+
+<script>
+  var BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwp4Snzqx1BiGlbOmJEXDK3ws7bhEMHFYJBdhkOvg6c0xamBGVWrmd9CDAIC_D7i92HxA/exec';
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  var order = null;
+  try {
+    var raw = localStorage.getItem('rr_pending_order');
+    if (raw) order = JSON.parse(raw);
+  } catch (err) {}
+
+  if (order && order.id) {
+    document.getElementById('confirm-found').style.display = 'block';
+    document.getElementById('confirm-summary').innerHTML =
+      '<strong>Kit:</strong> ' + esc(order.type) + '<br>' +
+      '<strong>Name:</strong> ' + esc(order.client) + '<br>' +
+      '<strong>Email:</strong> ' + esc(order.email) + '<br>' +
+      '<strong>Phone:</strong> ' + esc(order.phone) + '<br>' +
+      '<strong>Install Address:</strong> ' + esc(order.address) +
+      (order.notes ? '<br><strong>Notes:</strong> ' + esc(order.notes) : '');
+
+    document.getElementById('confirm-btn').addEventListener('click', function () {
+      var btn = document.getElementById('confirm-btn');
+      btn.disabled = true;
+      btn.textContent = 'Confirming...';
+
+      fetch(BACKEND_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'confirmPayment', id: order.id })
+      }).catch(function () {});
+
+      setTimeout(function () {
+        try { localStorage.removeItem('rr_pending_order'); } catch (err) {}
+        document.getElementById('confirm-found').style.display = 'none';
+        document.getElementById('confirm-success').style.display = 'block';
+      }, 800);
+    });
+  } else {
+    document.getElementById('confirm-missing').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

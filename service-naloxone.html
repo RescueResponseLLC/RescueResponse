@@ -46,6 +46,7 @@
         <a href="service-stb.html">Stop the Bleed Box</a>
         <a href="service-naloxone.html">Naloxone Box</a>
         <a href="service-kitchen.html">Kitchen Bleed and Burn Box</a>
+        <a href="service-fire.html">Fire Extinguisher Service</a>
         <a href="service-aed-outdoor.html">Outdoor AED Kits</a>
         <a href="service-mci.html">Mass Casualty Kits</a>
       </div>
@@ -82,6 +83,7 @@
     <ul class="includes-list" style="margin-top:20px;">
       <li>Naloxone (multi-dose)</li>
       <li>PPE</li>
+      <li>Positioning devices</li>
       <li>Emesis bags</li>
       <li>CPR mask</li>
     </ul>
@@ -116,7 +118,7 @@
       <h2>Ready to get set up?</h2>
     </div>
     <p style="max-width:520px;">Currently serving the greater Treasure Valley area — Ada, Canyon, Gem, Boise, and Payette counties. Tell us where this goes, and if you're in our service area, you'll go straight to payment.</p>
-    <form class="contact-form" id="preorder-form" style="max-width:480px; margin-top:20px;">
+    <form id="preorder-form" style="max-width:480px; margin-top:20px;">
       <div>
         <label for="po-name">Name</label>
         <input id="po-name" required>
@@ -166,6 +168,10 @@
   var BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwp4Snzqx1BiGlbOmJEXDK3ws7bhEMHFYJBdhkOvg6c0xamBGVWrmd9CDAIC_D7i92HxA/exec';
   var SERVICE_AREA_KEYWORDS = ['boise', 'meridian', 'nampa', 'caldwell', 'eagle', 'star', 'middleton', 'emmett', 'payette', 'kuna', 'garden city', 'ada county', 'canyon county', 'gem county', 'payette county', 'idaho city'];
 
+  function isPlaceholderOrg(v) {
+    return /^(n\/a|na|none|n\.a\.?|-)$/i.test(v.trim());
+  }
+
   document.getElementById('preorder-form').addEventListener('submit', function (e) {
     e.preventDefault();
     var form = e.target;
@@ -183,19 +189,31 @@
     var notes = document.getElementById('po-notes').value.trim();
 
     if (inArea) {
+      var orderId = 'k' + Date.now() + Math.floor(Math.random() * 1000);
+      var clientName = (org && !isPlaceholderOrg(org)) ? (org + ' — ' + name) : name;
+
       fetch(BACKEND_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
           action: 'submitOrder',
+          id: orderId,
           type: 'Naloxone',
-          client: org ? (org + ' — ' + name) : name,
+          client: clientName,
           clientEmail: email,
           clientPhone: phone,
-          message: 'Awaiting payment. Install address: ' + address + (notes ? ' | Notes: ' + notes : '')
+          address: address,
+          message: 'Awaiting payment.' + (notes ? ' Notes: ' + notes : '')
         })
       }).catch(function () {});
+
+      try {
+        localStorage.setItem('rr_pending_order', JSON.stringify({
+          id: orderId, type: 'Naloxone Box', client: clientName,
+          email: email, phone: phone, address: address, notes: notes
+        }));
+      } catch (err) {}
 
       form.style.display = 'none';
       document.getElementById('area-yes').style.display = 'block';

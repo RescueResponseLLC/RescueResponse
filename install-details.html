@@ -47,7 +47,7 @@
         <p>This is the only thing we're missing — everything else from your payment carries over automatically.</p>
       </div>
       <div>
-        <form class="contact-form" id="install-details-form">
+        <form id="install-details-form">
           <div>
             <label for="name">Name</label>
             <input id="name" name="name" type="text" required>
@@ -114,6 +114,10 @@
     return params.get('type') || 'General Inquiry';
   }
 
+  function isPlaceholderOrg(v) {
+    return /^(n\/a|na|none|n\.a\.?|-)$/i.test(v.trim());
+  }
+
   document.getElementById('install-details-form').addEventListener('submit', function (e) {
     e.preventDefault();
     var form = e.target;
@@ -135,10 +139,11 @@
       body: JSON.stringify({
         action: 'submitOrder',
         type: kitType,
-        client: org ? (org + ' — ' + name) : name,
+        client: (org && !isPlaceholderOrg(org)) ? (org + ' — ' + name) : name,
         clientEmail: email,
         clientPhone: phone,
-        message: 'PAID SUBSCRIBER. Install address: ' + address + (notes ? ' | Notes: ' + notes : '')
+        address: address,
+        message: 'PAID SUBSCRIBER.' + (notes ? ' Notes: ' + notes : '')
       })
     }).then(function () {
       form.style.display = 'none';
