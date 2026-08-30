@@ -20,6 +20,8 @@ body{
   line-height:1.55;
   overflow-x:hidden;
 }
+a{color:var(--accent);}
+a:hover{text-decoration:underline;}
 @media (prefers-reduced-motion: reduce){
   *{animation:none !important; transition:none !important;}
 }
