@@ -298,7 +298,6 @@
           <option>Stop the Bleed</option>
           <option>Naloxone</option>
           <option>Kitchen Bleed and Burn Box</option>
-          <option>Fire Extinguisher</option>
           <option>Outdoor AED</option>
           <option>Mass Casualty Kit</option>
           <option>Custom Kit</option>
@@ -528,7 +527,7 @@ async function postToBackend(payload){
 }
 
 function genId(type){
-  const prefix = {'Stop the Bleed':'STB','Naloxone':'NLX','Kitchen Bleed and Burn Box':'KTCH','Fire Extinguisher':'FIRE','Outdoor AED':'AED','Mass Casualty Kit':'MCI','Custom Kit':'CUST'}[type] || 'KIT';
+  const prefix = {'Stop the Bleed':'STB','Naloxone':'NLX','Kitchen Bleed and Burn Box':'KTCH','Outdoor AED':'AED','Mass Casualty Kit':'MCI','Custom Kit':'CUST'}[type] || 'KIT';
   const num = Math.floor(1000 + Math.random()*8999);
   return `${prefix}-${num}`;
 }
@@ -857,13 +856,12 @@ const STANDARD_CONTENTS = {
     {name:'Emergency Bandage'}, {name:'Trauma Shears', noExpiry:true}, {name:'Basic Gauze (x2)'}
   ],
   'Naloxone': [
-    {name:'Naloxone'}, {name:'Positioning Donut'}, {name:'CPR Mask'}, {name:'Gloves/PPE'}
+    {name:'Naloxone'}, {name:'CPR Mask'}, {name:'Gloves/PPE'}
   ],
   'Kitchen Bleed and Burn Box': [
     {name:'Tourniquet (x2)'}, {name:'Combat Gauze'}, {name:'Chest Seal'}, {name:'Emergency Bandage'},
     {name:'Dry Burn Sheet'}, {name:'Hydrogel Dressing'}
   ],
-  'Fire Extinguisher': [{name:'Fire Extinguisher'}],
   'Outdoor AED': [{name:'AED'}, {name:'CPR Mask'}],
   'Mass Casualty Kit': [
     {name:'Tourniquet'}, {name:'Chest Seal'}, {name:'CPR Mask'}, {name:'Emergency Blanket'}, {name:'Emergency Litter'}, {name:'AED'}

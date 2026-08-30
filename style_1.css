@@ -26,6 +26,8 @@ body{
 
 .topo{
   position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.3;
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
   background-image:
     repeating-radial-gradient(circle at 15% 20%, transparent 0, transparent 38px, rgba(124,152,133,0.05) 39px, transparent 40px),
     repeating-radial-gradient(circle at 85% 70%, transparent 0, transparent 52px, rgba(124,152,133,0.04) 53px, transparent 54px);
